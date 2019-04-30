@@ -18,3 +18,9 @@ ShieldBoost_value is 5, but can be changed in config file (set to 0 to disable)
 
 
 Compatible with character customizer mod
+
+
+
+
+###Changelog
+0.1.1 : Fixed bug where actual hp weren't scaled to max health
