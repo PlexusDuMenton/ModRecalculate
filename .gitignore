@@ -1,0 +1,5 @@
+# ignore all .a files
+*.vs
+*.git
+bin
+obj
