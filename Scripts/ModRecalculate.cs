@@ -15,6 +15,9 @@ using UnityEngine.Networking;
     Hook are additional,if you want to act multiplicative, do it in PostRecalculate
     Cooldown hook are MULTIPLICATIVE with other mod/BaseValue, if you want to make it Additional/Substractif, do it in PostRecalculate
 
+    To modify ItemValue use ModifyItem Hook, Item value are inside ModRecalculate class as public, Don't try to edit the private one ^^
+
+
 
     Example Application : 
     public class ExampleClass : BaseUnityPlugin
@@ -43,23 +46,25 @@ using UnityEngine.Networking;
            character.SetPropertyValue("damage", BonusDamage);
        }
        public void ModifyItem(CharacterBody character)
-       {
-            PlexusUtils.ModRecalculate.KnurlHealth += 20;
-            PlexusUtils.ModRecalculate.GlassCritStack -= 5;
-    }
-       
+        {
+            ModRecalculate.KnurlHealth += 20;
+            ModRecalculate.GlassCritStack -= 5;
+        }
 
-       public void Awake()
-       {
-        PlexusUtils.ModRecalculate.HealthRecalculation += delegate { return 5; }; //Simple +5 health after item are applied
-        PlexusUtils.ModRecalculate.CharacterDefaultHealth += BonusHealth; // Apply BonusHealth function result to Health before item are applied
-        PlexusUtils.ModRecalculate.ShieldItemEffect += ShieldCalculate;  // Apply Shield bonus function result to shield
-        PlexusUtils.ModRecalculate.PostRecalculate += PostRecalculateFunc;  // Apply the post recalculate function before the Health and Shield is updated
-        PlexusUtils.ModRecalculate.ModifyItem += ModifyItem;
-       }
+
+        public void Awake()
+        {
+            ModRecalculate.HealthRecalculation += delegate { return 5; }; //Simple +5 health after item are applied
+            ModRecalculate.CharacterDefaultHealth += BonusHealth; // Apply BonusHealth function result to Health before item are applied
+            ModRecalculate.ShieldItemEffect += ShieldCalculate;  // Apply Shield bonus function result to shield
+            ModRecalculate.PostRecalculate += PostRecalculateFunc;  // Apply the post recalculate function before the Health and Shield is updated
+            ModRecalculate.ModifyItem += ModifyItem;
+        }
     }
 
        HOOK LIST (IN ORDER OF CALL) :
+           ModifyItem
+
            CharacterDefaultHealth
            InfusionEffect
            KnurlMaxHpEffect
@@ -97,11 +102,7 @@ using UnityEngine.Networking;
 
            CharacterDefaultCrit
            GlassesEffect
-           
-    
-    
-    
-    Recalculation
+           CritRecalculation
 
            CharacterDefaultArmor
            BucklerEffect
@@ -603,6 +604,7 @@ namespace PlexusUtils
         static public float Base_RecalculateHealth(CharacterBody character)
         {
             //CharacterLinked Health Stats
+            
             float MaxHealth = HookHandler(CharacterDefaultHealth,character);
             float HealthBonusItem = 0;
             float hpbooster = 0;
@@ -616,16 +618,14 @@ namespace PlexusUtils
                 //Item MultiplierBonus
                 hpbooster = HookHandler(ItemBoosHpEffect,character);
             }
-
             //Applying flat bonus and Level up bonus
             MaxHealth = MaxHealth + HealthBonusItem;
-
             //Applying Shaped Glass and mult bonus effects
             if ((bool)character.inventory)
             {
                 MaxHealth *= hpbooster / (character.CalcLunarDaggerPower()*LunarDaggerHealthMalusMult);
             }
-
+            
             return MaxHealth;
         }
 
@@ -1015,6 +1015,9 @@ namespace PlexusUtils
 
         static public void ModdedRecalculate(On.RoR2.CharacterBody.orig_RecalculateStats orig, CharacterBody character)
         {
+            ModifyItem(character);
+
+
             character.SetPropertyValue("experience",(float) TeamManager.instance.GetTeamExperience(character.teamComponent.teamIndex));
             float l = (float)TeamManager.instance.GetTeamLevel(character.teamComponent.teamIndex);
             if (character.inventory)
@@ -1024,7 +1027,7 @@ namespace PlexusUtils
             }
             character.SetPropertyValue("level", l);
 
-
+            
             
             float Level = character.level - 1f;
             character.SetPropertyValue("isElite", character.GetFieldValue<BuffMask>("buffMask").containsEliteBuff);
