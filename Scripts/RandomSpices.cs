@@ -23,16 +23,33 @@ namespace plexus
     //The GUID should be a unique ID for character plugin, which is human readable (as it is used in places like the config). I like to use the java package notation, which is "com.[your name here].[your plugin name here]"
     //The name is the name of the plugin that's displayed on load, and the version number just specifies what version the plugin is.
 
-    [BepInPlugin("com.Plexus.RandomSpices", "RandomSpices", "0.1.1")]
+    [BepInPlugin("com.Plexus.RandomSpices", "RandomSpices", "0.1.3")]
 
     //character is the main declaration of our plugin class. BepInEx searches for all classes inheriting from BaseUnityPlugin to initialize on startup.
     //BaseUnityPlugin itself inherits from MonoBehaviour, so you can use character as a reference for what you can declare and use in your plugin class: https://docs.unity3d.com/ScriptReference/MonoBehaviour.html
+    public class RandomSpiceSaving
+    {
+        float BaseHealthLevel;
+        float LevelHealthLevel;
+        float ExpoHealthLevel;
+
+        float BaseShieldLevel;
+        float LevelShieldLevel;
+        float ExpoShieldLevel;
+
+        float BaseDamageLevel;
+        float LevelDamageLevel;
+    }
+
+
+
     public class RandomSpices : BaseUnityPlugin
     {
         public ConfigWrapper<string> exponentialValueHealth;
         public ConfigWrapper<string> ShieldBoostPerLevel;
-        public float HExpo = 1;
-        public float ShieldBoost = 1;
+
+
+        public float ShieldBoost = 5;
 
         public void InitConfig()
         {
@@ -40,7 +57,7 @@ namespace plexus
                     "exponential Health value",
                     "exponentialValueHealth",
                     "Sets exponential value applied to level when calculating health. default = 1",
-            "1.5");
+            "1.3");
 
             ShieldBoostPerLevel = Config.Wrap(
                     "Shield Boost per level",
@@ -48,6 +65,14 @@ namespace plexus
                     "Increase the bonus from shield item per player level. default = 0",
             "5");
         }
+
+        public void LevelUpExpHealth()
+        {
+            int price = 1;
+            Chat.AddMessage("Exponential Health Improved for "+ price + " lunar coin");
+            Chat.AddMessage("Exponential from : ");
+        }
+
 
         public void Recalulate(On.RoR2.CharacterBody.orig_RecalculateStats orig, CharacterBody character) //Here we go again
         {
@@ -112,8 +137,8 @@ namespace plexus
             float Level = character.level - 1f;
             character.SetPropertyValue("isElite", character.GetFieldValue<BuffMask>("buffMask").containsEliteBuff);
 
-            float preHealth = character.baseMaxHealth;
-            float preShield = character.baseMaxShield;
+            float preHealth = character.maxHealth;
+            float preShield = character.maxShield;
 
             //Health
             float MaxHealth = character.baseMaxHealth;
@@ -123,7 +148,12 @@ namespace plexus
             additionalHealth += character.inventory.GetItemCount(ItemIndex.Knurl) * 40;
 
             float hpbooster = 1 + character.inventory.GetItemCount(ItemIndex.BoostHp) * 0.1f;
-            MaxHealth = Utils.exponentialFormula(MaxHealth, character.levelMaxHealth, HExpo, character.level, 0) * hpbooster / character.CalcLunarDaggerPower();
+
+            float e = 1;
+            if (character.isPlayerControlled)
+                e = HExpo;
+
+            MaxHealth = Utils.exponentialFormula(MaxHealth, character.levelMaxHealth, e, character.level, 0) * hpbooster / character.CalcLunarDaggerPower();
             character.SetPropertyValue("maxHealth", MaxHealth);
 
 
@@ -350,6 +380,7 @@ namespace plexus
                 System.Globalization.NumberStyles S = System.Globalization.NumberStyles.AllowDecimalPoint;
                 System.Globalization.CultureInfo CI = System.Globalization.CultureInfo.CreateSpecificCulture("en-US");
                HExpo = float.Parse(exponentialValueHealth.Value,S,CI);
+                ShieldBoost = float.Parse(ShieldBoostPerLevel.Value, S, CI);
             }
             catch (InvalidCastException e)
             {
