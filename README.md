@@ -48,6 +48,7 @@ Create a list of hook to add/remove stats, and ItemSpecific hook, even PostRecal
 
             CharacterDefaultDamage
             BettleJuiceDamageEffect
+			DamageBoostEffect
             DamageRecalculation
 
             CharacterDefaultAttackSpeed
@@ -80,5 +81,10 @@ Create a list of hook to add/remove stats, and ItemSpecific hook, even PostRecal
 
 
 ###Changelog
+0.2.0 : 
+Added specific hook for DamageBoostEffect (multiplied with Character DefaultDamage
+Added Item Specific public value to edit from ModifyItem Hook
+Fixed Slug having no effect
+Fixed a LogSpamming bug
 
 0.1.0 : Initial Release
