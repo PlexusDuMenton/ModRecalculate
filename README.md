@@ -1,35 +1,84 @@
-# Random Spices
+# ModRecalculate
 #### by PlexusDuMenton
 
-Some little change I made to the game to goes by my way, many more change will come, all being disable/enable easily ^^
-
-
-Exponential Health scale so no longer Late Game OneShot
-
-Shield Item now scale with player level
+Library/API to easily change CharacterBody.Recalculate()
+Create a list of hook to add/remove stats, and ItemSpecific hook, even PostRecalculate hook that apply before Health/Shield update (which is a bit issue if you edit maxHealth/MaxShield after)
 
 
 
 
-###Formula
+###Developer Info
+	Plugin ID : com.Plexus.ModRecalculate
 
-Health = BaseHealth + HealthGainPerLevel * (Level-1)^e_value + Other_Health_Gain;
+	CharacterDefault*** : Before Item are apllied
+        ***Effect : Item specific hook
+        ***Recalculate : Applyed after all item are applied
+        PostRecalculate apply hook before the Health and Shield are updated
 
-e_value is 1.5, but can be edited in the config file (set to 1 to disable)
+        Hook are additional,if you want to act multiplicative, do it in PostRecalculate
+        Cooldown hook are MULTIPLICATIVE with other mod/BaseValue, if you want to make it Additional/Substractif, do it in PostRecalculate
 
-Shield = ShieldCount * (25 + ShieldBoost_value*(Level-1)) + Other Shield source
 
-ShieldBoost_value is 5, but can be changed in config file (set to 0 to disable)
+	LIST (IN ORDER OF CALL) :
+            CharacterDefaultHealth
+            InfusionEffect
+            KnurlMaxHpEffect
+            ItemBoosHpEffect
+            HealthRecalculation
 
-Compatible with character customizer mod
+            CharacterDefaultShield
+            TranscendenceEffect
+            ShieldItemEffect
+            ShieldRecalculation
 
+            CharacterDefaultRegen
+            SlugEffect
+            KnurlRegenEffect
+            HealthDecayEffect
+            RegenRecalculation
+
+            CharacterDefaultSpeed
+            RedWimpHoofEffect
+            EnergyDrinkEffect
+            BettleJuiceSpeedEffect
+            MoveSpeedRecalculation
+
+            JumpPower
+            JumpCount
+
+            CharacterDefaultDamage
+            BettleJuiceDamageEffect
+            DamageRecalculation
+
+            CharacterDefaultAttackSpeed
+            SyringueEffect
+            BettleJuiceAttackSpeedEffect
+            AttackSpeedRecalculation
+
+            CharacterDefaultCrit
+            GlassesEffect
+            CritRecalculation
+
+            CharacterDefaultArmor
+            BucklerEffect
+            ArmorRecalculation
+
+            AlienHeadEffect
+            CoolDownRecalculation
+
+            PrimaryCoolDownMultiplier
+            PrimaryStackCount
+
+            SecondaryCoolDownMultiplier
+            SecondaryStackCount
+
+            UtilityCoolDownMultiplier
+            UtilityStackCount
+            
+            PostRecalculate
 
 
 
 ###Changelog
 
-0.1.3 : Fixed Shield not properly scaling, Ennemies no longer get exponential health too ^^'
-
-0.1.2 : Fix bug where health get maxed when using any skill or sprinting
-
-0.1.1 : Fixed bug where actual hp weren't scaled to max health
+0.1.0 : Initial Release

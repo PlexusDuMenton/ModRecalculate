@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.28307.572
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RandomSpices", "RandomSpices.csproj", "{CC7292A4-4017-4C38-90B8-52A846475BB9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModRecalculate", "..\ModRecalculate\ModRecalculate.csproj", "{D2FED9CE-F5DC-4C55-BB00-A1B6D7A60C90}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{CC7292A4-4017-4C38-90B8-52A846475BB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC7292A4-4017-4C38-90B8-52A846475BB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC7292A4-4017-4C38-90B8-52A846475BB9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2FED9CE-F5DC-4C55-BB00-A1B6D7A60C90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2FED9CE-F5DC-4C55-BB00-A1B6D7A60C90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2FED9CE-F5DC-4C55-BB00-A1B6D7A60C90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2FED9CE-F5DC-4C55-BB00-A1B6D7A60C90}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
