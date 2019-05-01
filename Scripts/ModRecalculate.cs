@@ -1,7 +1,7 @@
 ﻿using BepInEx;
 using UnityEngine;
 using RoR2;
-using AetherLib.Util.Reflection;
+using System.Reflection;
 using System;
 using UnityEngine.Networking;
 
@@ -337,7 +337,7 @@ namespace PlexusUtils
             SecondaryStackCount = Base_SecondaryStackCount;
             UtilityStackCount = Base_UtilityStackCount;
 
-            Debug.Log(HealthRecalculation.GetType());
+            PostRecalculate = delegate (CharacterBody character) { /*To aboid Bug*/ };
             On.RoR2.CharacterBody.RecalculateStats += ModdedRecalculate;
         }
 
@@ -788,7 +788,6 @@ namespace PlexusUtils
             float preShield = character.maxShield;
 
 
-            
             character.SetPropertyValue("maxHealth", HookHandler(HealthRecalculation,character));
 
             character.SetPropertyValue("maxShield", HookHandler(ShieldRecalculation,character));
@@ -809,12 +808,9 @@ namespace PlexusUtils
             character.SetPropertyValue("attackSpeed", HookHandler(AttackSpeedRecalculation,character));
             
             character.SetPropertyValue("crit", HookHandler(CritRecalculation,character));
-
             character.SetPropertyValue("armor", HookHandler(ArmorRecalculation,character));
-
             //CoolDown
             float CoolDownMultiplier = HookHandler(CoolDownRecalculation,character);
-
             if (character.inventory) { 
                 if ((bool) character.GetFieldValue<SkillLocator>("skillLocator").primary)
                     character.GetFieldValue<SkillLocator>("skillLocator").primary.cooldownScale = HookHandlerMultiplier(PrimaryCoolDownMultiplier, character) * CoolDownMultiplier;
@@ -832,7 +828,6 @@ namespace PlexusUtils
                 if ((bool) character.GetFieldValue<SkillLocator>("skillLocator").special)
                     character.GetFieldValue<SkillLocator>("skillLocator").special.cooldownScale = CoolDownMultiplier;
             }
-
             //CriticalHeal, it don't seam used for now, so ... no hook 
             //yea I'm lazy, but making those is boring !
             character.SetPropertyValue("critHeal", 0.0f);
@@ -844,9 +839,7 @@ namespace PlexusUtils
                     character.SetPropertyValue("critHeal", crit - character.crit);
                 }
             }
-
             PostRecalculate(character);
-            //UpdateHealth/Shield Value
             if (NetworkServer.active)
             {
                 float HealthOffset = character.maxHealth - preHealth;
@@ -865,5 +858,85 @@ namespace PlexusUtils
 
 
 
+    }
+
+
+}
+
+public static class ReflectionHelper
+{
+
+    private static FieldInfo GetFieldInfo(Type type, string fieldName)
+    {
+        FieldInfo fieldInfo;
+        do
+        {
+            fieldInfo = type.GetField(fieldName,
+                   BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            type = type.BaseType;
+        }
+        while (fieldInfo == null && type != null);
+        return fieldInfo;
+    }
+
+    private static PropertyInfo GetPropertyInfo(Type type, string fieldName)
+    {
+        PropertyInfo PropertyInfo;
+        do
+        {
+            PropertyInfo = type.GetProperty(fieldName,
+                   BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            type = type.BaseType;
+        }
+        while (PropertyInfo == null && type != null);
+        return PropertyInfo;
+    }
+
+    public static T GetFieldValue<T>(this object obj, string fieldName)
+    {
+        if (obj == null)
+            throw new ArgumentNullException("obj");
+        Type objType = obj.GetType();
+        FieldInfo fieldInfo = GetFieldInfo(objType, fieldName);
+        if (fieldInfo == null)
+            throw new ArgumentOutOfRangeException("fieldName",
+              string.Format("Couldn't find field {0} in type {1}", fieldName, objType.FullName));
+        return (T)fieldInfo.GetValue(obj);
+    }
+
+    public static void SetFieldValue(this object obj, string fieldName, object val)
+    {
+        if (obj == null)
+            throw new ArgumentNullException("obj");
+        Type objType = obj.GetType();
+        FieldInfo fieldInfo = GetFieldInfo(objType, fieldName);
+        if (fieldInfo == null)
+            throw new ArgumentOutOfRangeException("fieldName",
+              string.Format("Couldn't find field {0} in type {1}", fieldName, objType.FullName));
+        fieldInfo.SetValue(obj, val);
+    }
+
+    public static T GetPropertyValue<T>(this object obj, string fieldName)
+    {
+        if (obj == null)
+            throw new ArgumentNullException("obj");
+        Type objType = obj.GetType();
+        PropertyInfo propertyInfo = GetPropertyInfo(objType, fieldName);
+        if (propertyInfo == null)
+            throw new ArgumentOutOfRangeException("propertyName",
+              string.Format("Couldn't find property {0} in type {1}", fieldName, objType.FullName));
+        return (T)propertyInfo.GetValue(obj);
+    }
+
+    public static void SetPropertyValue(this object obj, string fieldName, object val)
+    {
+        if (obj == null)
+            throw new ArgumentNullException("obj");
+        Type objType = obj.GetType();
+        PropertyInfo propertyInfo = GetPropertyInfo(objType, fieldName);
+        if (propertyInfo == null)
+            throw new ArgumentOutOfRangeException("propertyName",
+              string.Format("Couldn't find property {0} in type {1}", fieldName, objType.FullName));
+        propertyInfo.SetValue(obj, val);
     }
 }
