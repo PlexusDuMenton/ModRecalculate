@@ -391,10 +391,10 @@ namespace PlexusUtils
                 ModItemDictionary.Add(itemIndex, new ModItem(itemIndex));
             }
             //Fun Start here
-            /*
+            
             AddStatToItem(ItemIndex.PersonalShield, new ModItemStat(25, StatIndex.MaxShield));
             AddStatToItem(ItemIndex.AlienHead, new ModItemStat(0,0,0.75f, StatIndex.GlobalCoolDown));
-            */
+            
         }
 
         static public float GetBonusForStat(CharacterBody c,StatIndex stat)
