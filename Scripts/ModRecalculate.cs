@@ -4,6 +4,7 @@ using RoR2;
 using System.Reflection;
 using System;
 using UnityEngine.Networking;
+using System.Collections.Generic;
 
 
 /*
@@ -163,6 +164,8 @@ namespace PlexusUtils
         Closed = 2, //Overide prevent all other hook to happen
         Warned = 3, //Closed and Error has been droped
     }
+
+    
 
     static public class ModRecalculate
     {
@@ -369,6 +372,8 @@ namespace PlexusUtils
         public static OverideState SecondaryCoolDownMultiplier_Overide = 0;
         public static event Hook_floatHook UtilityCoolDownMultiplier;
         public static OverideState UtilityCoolDownMultiplier_Overide = 0;
+        public static event Hook_floatHook SpecialCoolDownMultiplier;
+        public static OverideState SpecialCoolDownMultiplier_Overide = 0;
 
         public static event Hook_floatHook PrimaryStackCount;
         public static OverideState PrimaryStackCount_Overide = 0;
@@ -376,6 +381,8 @@ namespace PlexusUtils
         public static OverideState SecondaryStackCount_Overide = 0;
         public static event Hook_floatHook UtilityStackCount;
         public static OverideState UtilityStackCount_Overide = 0;
+        public static event Hook_floatHook SpecialStackCount;
+        public static OverideState SpecialStackCount_Overide = 0;
         #endregion
 
         #region VariableHell
@@ -390,6 +397,8 @@ namespace PlexusUtils
         public static float ItemBoostEffectMult;
         private static float m_base_LunarDaggerHealthMalusMult = 1;
         public static float LunarDaggerHealthMalusMult;
+        private static float m_base_CustomBonusHealthMult = 0;
+        public static float CustomBonusHealthMult;
 
         //Max Shield
         private static float m_base_ShieldGen = 25;
@@ -398,6 +407,8 @@ namespace PlexusUtils
         public static float TranscendenceBonus;
         private static float m_base_TranscendenceStack = 0.25f;
         public static float TranscendenceStack;
+        private static float m_base_CustomBonusShieldMult =0;
+        public static float CustomBonusShieldMult; 
 
         //Regen
         private static float m_base_SlugBonus = 2.5f;
@@ -530,12 +541,14 @@ namespace PlexusUtils
         {
             InfusionMult = m_base_InfusionMult;
             KnurlHealth = m_base_KnurlHealth;
+            CustomBonusHealthMult = m_base_CustomBonusHealthMult;
             ItemBoostEffectMult = m_base_ItemBoostEffectMult;
             LunarDaggerHealthMalusMult = m_base_LunarDaggerHealthMalusMult;
 
             ShieldGen = m_base_ShieldGen;
             TranscendenceBonus = m_base_TranscendenceBonus;
             TranscendenceStack = m_base_TranscendenceStack;
+            CustomBonusShieldMult = m_base_CustomBonusShieldMult;
 
             SlugBonus = m_base_SlugBonus;
             SlugStack = m_base_SlugStack;
@@ -665,11 +678,13 @@ namespace PlexusUtils
             PrimaryCoolDownMultiplier = Base_PrimaryCoolDownMultiplier;
             SecondaryCoolDownMultiplier = Base_SecondaryCoolDownMultiplier;
             UtilityCoolDownMultiplier = Base_UtilityCoolDownMultiplier;
+            SpecialCoolDownMultiplier = Base_SpecialCoolDownMultiplier;
 
             //Ability Stack Count
             PrimaryStackCount = Base_PrimaryStackCount;
             SecondaryStackCount = Base_SecondaryStackCount;
             UtilityStackCount = Base_UtilityStackCount;
+            SpecialStackCount = Base_SpecialStackCount;
 
             PostRecalculate = delegate (CharacterBody character) { /*To aboid Bug*/ };
             On.RoR2.CharacterBody.RecalculateStats += ModdedRecalculate;
@@ -711,6 +726,7 @@ namespace PlexusUtils
 
                 //Item MultiplierBonus
                 hpbooster = HookHandler("ItemBoosHpEffect",character);
+                hpbooster += CustomBonusHealthMult;
             }
             //Applying flat bonus and Level up bonus
             MaxHealth = MaxHealth + HealthBonusItem;
@@ -768,7 +784,7 @@ namespace PlexusUtils
                 character.SetPropertyValue("maxHealth", character.maxHealth * 0.5f);
                 MaxShield += character.maxHealth;
             }
-
+            MaxShield *= (1+CustomBonusShieldMult);
             return MaxShield;
         }
 
@@ -1093,6 +1109,10 @@ namespace PlexusUtils
                 return UtilitySkillMagazineCD;
             return 1;
         }
+        static public float Base_SpecialCoolDownMultiplier(CharacterBody character)
+        {
+            return 1;
+        }
 
         static public float Base_PrimaryStackCount(CharacterBody character)
         {
@@ -1106,7 +1126,10 @@ namespace PlexusUtils
         {
             return character.inventory.GetItemCount(ItemIndex.UtilitySkillMagazine) * UtilitySkillMagazineCount;
         }
-
+        static public float Base_SpecialStackCount(CharacterBody character)
+        {
+            return 0;
+        }
         static public void ModdedRecalculate(On.RoR2.CharacterBody.orig_RecalculateStats orig, CharacterBody character)
         {
             ModifyItem(character);
@@ -1169,8 +1192,14 @@ namespace PlexusUtils
                     character.GetFieldValue<SkillLocator>("skillLocator").utility.cooldownScale = HookHandlerMultiplier("UtilityCoolDownMultiplier",character)* CoolDownMultiplier;
                     character.GetFieldValue<SkillLocator>("skillLocator").utility.SetBonusStockFromBody((int)HookHandler("UtilityStackCount",character));
                 }
-                if ((bool) character.GetFieldValue<SkillLocator>("skillLocator").special)
+                if ((bool)character.GetFieldValue<SkillLocator>("skillLocator").special)
+                {
                     character.GetFieldValue<SkillLocator>("skillLocator").special.cooldownScale = CoolDownMultiplier;
+                    if (character.GetFieldValue<SkillLocator>("skillLocator").special.baseMaxStock > 1)
+                        character.GetFieldValue<SkillLocator>("skillLocator").special.SetBonusStockFromBody((int)HookHandler("SpecialStackCount", character));
+                }
+                    
+
             }
             //CriticalHeal, it don't seam used for now, so ... no hook 
             //yea I'm lazy, but making those is boring !
