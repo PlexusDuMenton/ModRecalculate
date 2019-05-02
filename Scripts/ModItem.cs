@@ -79,7 +79,7 @@ namespace PlexusUtils
         /// <param name="FlatBonus">Flat bonus when player Have the item</param>
         /// <param name="FlatStackBonus">Flat bonus for each additional item the player own</param>
         /// <param name="MultBonus">Multiplicative bonus when player Have the item</param>
-        /// <param name="MultStackBonus">Multiplicative bonus for each additional item the player own</param>
+        /// <param name="MultStackBonus">Multiplicative bonus for each additional item the player own, for Cooldowns values of 0 are ignored</param>
         /// <param name="Stat"></param>
         public ModItemStat(float FlatBonus, float FlatStackBonus, float MultBonus, float MultStackBonus, StatIndex Stat)
         {
@@ -310,6 +310,10 @@ namespace PlexusUtils
             {
                 Item.m_StatList[Item.m_StatList.FindIndex(x => x.Stat == Stat.Stat)] += Stat;
             }
+            else
+            {
+                Item.m_StatList.Add(Stat);
+            }
             return Item;
         }
         public static ModItem operator +(ModItem Item, List<ModItemStat> Stats)
@@ -318,6 +322,10 @@ namespace PlexusUtils
                 if (Item.m_StatList.Exists(x => x.Stat == Stat.Stat))
                 {
                     Item.m_StatList[Item.m_StatList.FindIndex(x => x.Stat == Stat.Stat)] += Stat;
+                }
+                else
+                {
+                    Item.m_StatList.Add(Stat);
                 }
             return Item;
         }
@@ -385,16 +393,48 @@ namespace PlexusUtils
 
         static public void Update()
         {
+
+
             ModItemDictionary = new Dictionary<ItemIndex, ModItem>();
             foreach (ItemIndex itemIndex in (ItemIndex[])Enum.GetValues(typeof(ItemIndex)))
             {
-                ModItemDictionary.Add(itemIndex, new ModItem(itemIndex));
+                if (itemIndex != ItemIndex.Count && itemIndex != ItemIndex.None)
+                    ModItemDictionary.Add(itemIndex, new ModItem(itemIndex));
             }
             //Fun Start here
-            
+
+            AddStatToItem(ItemIndex.Knurl, new ModItemStat(40, StatIndex.MaxHealth));
+            AddStatToItem(ItemIndex.BoostHp, new ModItemStat(0, 0, 0.1f, StatIndex.MaxHealth));
+
             AddStatToItem(ItemIndex.PersonalShield, new ModItemStat(25, StatIndex.MaxShield));
+
+            AddStatToItem(ItemIndex.HealWhileSafe, new ModItemStat(0, 0, 2.5f,1.5f, StatIndex.SafeRegen));
+            AddStatToItem(ItemIndex.Knurl, new ModItemStat(1.6f, StatIndex.Regen));
+            AddStatToItem(ItemIndex.HealthDecay, new ModItemStat(0,0,-0.1f, StatIndex.Regen));
+
+            AddStatToItem(ItemIndex.SprintOutOfCombat, new ModItemStat(0, 0, 0.3f, StatIndex.SafeRunningMoveSpeed));
+            AddStatToItem(ItemIndex.Hoof, new ModItemStat(0, 0, 0.14f, StatIndex.MoveSpeed));
+            AddStatToItem(ItemIndex.SprintBonus, new ModItemStat(0, 0, 0.3f,0.2f, StatIndex.RunningMoveSpeed));
+
+            AddStatToItem(ItemIndex.Feather, new ModItemStat(1, StatIndex.JumpCount));
+
+            AddStatToItem(ItemIndex.BoostDamage, new ModItemStat(0,0,0.1f, StatIndex.Damage));
+            AddStatToItem(ItemIndex.Syringe, new ModItemStat(0, 0, 0.15f, StatIndex.AttackSpeed));
+
+            AddStatToItem(ItemIndex.CritGlasses, new ModItemStat(10, StatIndex.Crit));
+            AddStatToItem(ItemIndex.AttackSpeedOnCrit, new ModItemStat(5,0, StatIndex.Crit));
+            AddStatToItem(ItemIndex.CritHeal, new ModItemStat(5, 0, StatIndex.Crit));
+            AddStatToItem(ItemIndex.HealOnCrit, new ModItemStat(5, 0, StatIndex.Crit));
+            AddStatToItem(ItemIndex.CooldownOnCrit, new ModItemStat(5, 0, StatIndex.Crit));
+
+            AddStatToItem(ItemIndex.SprintArmor, new ModItemStat(30, StatIndex.RunningArmor));
+            AddStatToItem(ItemIndex.DrizzlePlayerHelper, new ModItemStat(70, StatIndex.Armor));
+
             AddStatToItem(ItemIndex.AlienHead, new ModItemStat(0,0,0.75f, StatIndex.GlobalCoolDown));
-            
+
+            AddStatToItem(ItemIndex.UtilitySkillMagazine, new ModItemStat(0, 0, 2f/3f,1, StatIndex.CoolDownUtility));
+            AddStatToItem(ItemIndex.SecondarySkillMagazine, new ModItemStat(1, StatIndex.CountSecondary));
+            AddStatToItem(ItemIndex.UtilitySkillMagazine, new ModItemStat(2, StatIndex.CountUtility));
         }
 
         static public float GetBonusForStat(CharacterBody c,StatIndex stat)
@@ -402,9 +442,10 @@ namespace PlexusUtils
             float value = 0;
             if (c.inventory)
             {
+                
                 foreach (ItemIndex itemIndex in (ItemIndex[])Enum.GetValues(typeof(ItemIndex)))
                 {
-                    if (c.inventory.GetItemCount(itemIndex) > 0)
+                    if (ModItemDictionary.ContainsKey(itemIndex) && c.inventory.GetItemCount(itemIndex) > 0)
                         value += ModItemDictionary[itemIndex].GetFlatBonusFromCount(stat, c.inventory.GetItemCount(itemIndex));
                 }
             }
@@ -417,7 +458,7 @@ namespace PlexusUtils
             {
                 foreach (ItemIndex itemIndex in (ItemIndex[])Enum.GetValues(typeof(ItemIndex)))
                 {
-                    if (c.inventory.GetItemCount(itemIndex) > 0)
+                    if (ModItemDictionary.ContainsKey(itemIndex) && c.inventory.GetItemCount(itemIndex) > 0)
                         value += ModItemDictionary[itemIndex].GetMultStackBonusFromCount(stat, c.inventory.GetItemCount(itemIndex));
                 }
             }
@@ -431,8 +472,9 @@ namespace PlexusUtils
             {
                 foreach (ItemIndex itemIndex in (ItemIndex[])Enum.GetValues(typeof(ItemIndex)))
                 {
-                    if (c.inventory.GetItemCount(itemIndex) > 0)
-                        value *= ModItemDictionary[itemIndex].GetMultStackBonusFromCount(stat, c.inventory.GetItemCount(itemIndex));
+                    if (ModItemDictionary.ContainsKey(itemIndex) && c.inventory.GetItemCount(itemIndex) > 0)
+                        if (ModItemDictionary[itemIndex].GetMultStackBonusFromCount(stat, c.inventory.GetItemCount(itemIndex)) != 0)
+                            value *= ModItemDictionary[itemIndex].GetMultStackBonusFromCount(stat, c.inventory.GetItemCount(itemIndex));
                 }
             }
             return value;

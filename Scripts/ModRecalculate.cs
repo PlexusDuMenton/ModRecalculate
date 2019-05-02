@@ -48,8 +48,9 @@ using System.Collections.Generic;
        }
        public void ModifyItem(CharacterBody character)
         {
-            ModRecalculate.KnurlHealth += 20;
-            ModRecalculate.GlassCritStack -= 5;
+            //Syringe now give damage but give only give 0.1 attack speed instead of 0.15
+            ModItemManager.AddStatToItem(ItemIndex.Syringe, new ModItemStat(2, StatIndex.Damage));
+            ModItemManager.AddStatToItem(ItemIndex.Syringe, new ModItemStat(0,0,-0.05f, StatIndex.AttackSpeed));
         }
 
         float OverWriterHook(CharacterBody character)
@@ -143,7 +144,7 @@ namespace PlexusUtils
 {
 
     [BepInDependency("com.bepis.r2api")]
-    [BepInPlugin("com.Plexus.ModRecalculate", "ModRecalculate", "0.3.0")]
+    [BepInPlugin("com.Plexus.ModRecalculate", "ModRecalculate", "0.4.0")]
 
     public class PlexusUtils : BaseUnityPlugin
     {
@@ -153,7 +154,7 @@ namespace PlexusUtils
         public void Awake()
         {
             ModRecalculate.Init();
-            
+
         }
     }
 
@@ -390,65 +391,57 @@ namespace PlexusUtils
         #region HealthShieldAndRegen
         //Max Health
         private static float m_base_InfusionMult = 1;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float InfusionMult;
-        private static float m_base_KnurlHealth = 40;
+        private static float m_base_KnurlHealth = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float KnurlHealth;
-        private static float m_base_ItemBoostEffectMult = 0.1f;
+        private static float m_base_ItemBoostEffectMult = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float ItemBoostEffectMult;
         private static float m_base_LunarDaggerHealthMalusMult = 1;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float LunarDaggerHealthMalusMult;
         private static float m_base_CustomBonusHealthMult = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float CustomBonusHealthMult;
 
         //Max Shield
-        private static float m_base_ShieldGen = 25;
+        private static float m_base_ShieldGen = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float ShieldGen;
         private static float m_base_TranscendenceBonus = 0.5f;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float TranscendenceBonus;
         private static float m_base_TranscendenceStack = 0.25f;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float TranscendenceStack;
         private static float m_base_CustomBonusShieldMult =0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float CustomBonusShieldMult; 
 
         //Regen
-        private static float m_base_SlugBonus = 2.5f;
+        private static float m_base_SlugBonus = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float SlugBonus;
-        private static float m_base_SlugStack = 1.5f;
+        private static float m_base_SlugStack = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float SlugStack;
-        private static float m_base_KnurlRegen = 1.6f;
+        private static float m_base_KnurlRegen = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float KnurlRegen;
         private static float m_base_HealthDecayMult = 1;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float HealthDecayMult;
         #endregion
         #region SpeedAndMobility
         //Speed Item
-        private static float m_base_RedWimp = 0.3f;
+        private static float m_base_RedWimp = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float RedWimp;
-        private static float m_base_Hoof = 0.14f;
+        private static float m_base_Hoof = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float Hoof;
-        private static float m_base_EnergyDrinkBonus = 0.3f;
+        private static float m_base_EnergyDrinkBonus = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float EnergyDrinkBonus;
-        private static float m_base_EnergyDrinkStack = 0.2f;
+        private static float m_base_EnergyDrinkStack = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float EnergyDrinkStack;
         private static float m_base_BettleJuiceSpeedMalus = 0.05f;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float BettleJuiceSpeedMalus;
 
         //Speed Buff
@@ -481,23 +474,20 @@ namespace PlexusUtils
         #region DamageAndAttackSpeed
         //Damage
         private static float m_base_BettleJuiceDamageMalus = 0.05f;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float BettleJuiceDamageMalus;
-        private static float m_base_DamageBoost = 0.1f;
+        private static float m_base_DamageBoost = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float DamageBoost;
         private static float m_base_GoldEmpoweredDamage = 1;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float GoldEmpoweredDamage;
         private static float m_base_LunarDaggerDamageMult = 1;
         public static float LunarDaggerDamageMult;
 
         //AttackSpeed
-        private static float m_base_SyringueSpeed = 0.15f;
+        private static float m_base_SyringueSpeed = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float SyringueSpeed;
         private static float m_base_BettleJuiceAttackSpeedMalus = 0.05f;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float BettleJuiceAttackSpeedMalus;
         private static float m_base_AffixYellowAttackSpeed = 0.5f;
         public static float AffixYellowAttackSpeed;
@@ -510,31 +500,31 @@ namespace PlexusUtils
         #endregion
         #region CritAndArmor
         //CriticalChance
-        private static float m_base_GlassCrit = 10;
+        private static float m_base_GlassCrit = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float GlassCrit;
-        private static float m_base_GlassCritStack = 10;
+        private static float m_base_GlassCritStack = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float GlassCritStack;
-        private static float m_base_PredatoryInstincCrit = 5;
+        private static float m_base_PredatoryInstincCrit = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float PredatoryInstincCrit;
         private static float m_base_PredatoryInstincCritStack = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float PredatoryInstincCritStack;
-        private static float m_base_WickedRingCrit = 5;
+        private static float m_base_WickedRingCrit = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float WickedRingCrit;
         private static float m_base_WickedRingCritStack = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float WickedRingCritStack;
-        private static float m_base_ScytheCrit = 5;
+        private static float m_base_ScytheCrit = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float ScytheCrit;
         private static float m_base_ScytheCritStack = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float ScytheCritStack;
-        private static float m_base_CritHealCrit = 5;
+        private static float m_base_CritHealCrit = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float CritHealCrit;
         private static float m_base_CritHealCritStack = 0;
@@ -544,19 +534,20 @@ namespace PlexusUtils
         public static float HUDCrit;
 
         //Armor
-        private static float m_base_BucklerArmor = 30;
+        private static float m_base_BucklerArmor = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float BucklerArmor;
         private static float m_base_ArmorBoostBuff = 200;
         public static float ArmorBoostBuff;
         private static float m_base_CrippleDebuff = 20;
         public static float CrippleDebuff;
-        public static float m_base_DrizzlePlayerHelper = 70f;
+        public static float m_base_DrizzlePlayerHelper = 0;
+        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float DrizzlePlayerHelper;
         #endregion
         #region CD
         //CoolDown
-        public static float m_base_AlienHeadCDMult = 0.75f;
+        public static float m_base_AlienHeadCDMult = 1;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float AlienHeadCDMult;
         public static float m_base_GoldEmpoweredCD = 0.25f;
@@ -565,21 +556,21 @@ namespace PlexusUtils
         public static float m_base_SecondarySkillMagazineCD = 1;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float SecondarySkillMagazineCD;
-        public static float m_base_UtilitySkillMagazineCD = 2f/3f;
+        public static float m_base_UtilitySkillMagazineCD = 1;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float UtilitySkillMagazineCD;
 
-        public static float m_base_SecondarySkillMagazineCount = 1;
+        public static float m_base_SecondarySkillMagazineCount = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float SecondarySkillMagazineCount;
-        public static float m_base_UtilitySkillMagazineCount = 2;
+        public static float m_base_UtilitySkillMagazineCount = 0;
         [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
         public static float UtilitySkillMagazineCount;
         #endregion
         #endregion
 
 
-
+#pragma warning disable CS0618 // Le type ou le membre est obsolète
         private static void Base_ModifyItem(CharacterBody character) //Yes it was fun making all those !
         {
             InfusionMult = m_base_InfusionMult;
@@ -651,6 +642,9 @@ namespace PlexusUtils
             SecondarySkillMagazineCD = m_base_SecondarySkillMagazineCD;
             GoldEmpoweredCD = m_base_GoldEmpoweredCD;
             AlienHeadCDMult = m_base_AlienHeadCDMult;
+
+            ModItemManager.Update();
+
         }
 
         //Used to add the defaults Hook
@@ -864,19 +858,22 @@ namespace PlexusUtils
             //Item Related
             if ((bool)character.inventory)
             {
-                RegenBonus += (BaseRegen * HookHandler("SlugEffect",character)) - BaseRegen;
+                if (character.inventory.GetItemCount(ItemIndex.HealWhileSafe) > 0)
+                    RegenBonus += (BaseRegen * HookHandler("SlugEffect",character)) - BaseRegen;
                 RegenBonus += ModItemManager.GetBonusForStat(character, StatIndex.Regen);
-                if (character.inventory.GetItemCount(ItemIndex.HealthDecay) > 0 && HealthDecayMult != 0)
+                if (character.outOfDanger)
                     RegenBonus += ModItemManager.GetBonusForStat(character, StatIndex.SafeRegen);
                 RegenBonus += HookHandler("KnurlRegenEffect",character);
                 RegenBonus -= HookHandler("HealthDecayEffect",character);
             }
-            float totalRegen = (BaseRegen + RegenBonus);
-            float regenmult = 1+ ModItemManager.GetMultiplierForStat(character, StatIndex.Regen);
-            if (character.inventory.GetItemCount(ItemIndex.HealthDecay) > 0 && HealthDecayMult != 0)
-                RegenBonus += ModItemManager.GetMultiplierForStat(character, StatIndex.SafeRegen);
 
-            return  BaseRegen + RegenBonus;
+            float regenmult = 1 + ModItemManager.GetMultiplierForStat(character, StatIndex.Regen);
+            if (character.outOfDanger)
+                regenmult += ModItemManager.GetMultiplierForStat(character, StatIndex.SafeRegen);
+
+            float totalRegen = (BaseRegen* regenmult + RegenBonus);
+
+            return totalRegen;
             
         }
 
@@ -1007,9 +1004,6 @@ namespace PlexusUtils
         static public float Base_JumpCount(CharacterBody character)
         {
             float JumpCount = character.baseJumpCount + BonusJumpCount + ModItemManager.GetBonusForStat(character, StatIndex.JumpCount);
-            if (character.inventory)
-                JumpCount += character.inventory.GetItemCount(ItemIndex.Feather);
-
             JumpCount *= 1 + ModItemManager.GetMultiplierForStat(character, StatIndex.JumpCount);
             return JumpCount;
         }
@@ -1034,7 +1028,9 @@ namespace PlexusUtils
             DamageBoost -= HookHandler("BettleJuiceDamageEffect", character);
 
             if (character.HasBuff(BuffIndex.GoldEmpowered))
+
                 DamageBoost += GoldEmpoweredDamage;
+
             return DamageBoost;
         }
         static public float Base_DamageRecalculation(CharacterBody character)
@@ -1168,7 +1164,7 @@ namespace PlexusUtils
         {
             float CDMult = 1;
             for (int index = 0; index < character.inventory.GetItemCount(ItemIndex.AlienHead); ++index)
-                CDMult *= 0.75f;
+                CDMult *= AlienHeadCDMult;
             return CDMult;
         }
         static public float Base_CoolDownRecalculation(CharacterBody character)
@@ -1260,8 +1256,10 @@ namespace PlexusUtils
             count *= ModItemManager.GetMultiplierForStat(character, StatIndex.CountSpecial);
             return count;
         }
+#pragma warning restore CS0618 // Disable Obsolete warning
         static public void ModdedRecalculate(On.RoR2.CharacterBody.orig_RecalculateStats orig, CharacterBody character)
         {
+            
             ModifyItem(character);
 
 
