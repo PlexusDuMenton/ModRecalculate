@@ -5,8 +5,9 @@ using System.Reflection;
 using System;
 using UnityEngine.Networking;
 using System.Collections.Generic;
-
-
+using Frogtown;
+using UnityEngine.Events;
+using UnityEngine.UI;
 /*
     CharacterDefault*** : Before Item are apllied
     ***Effect : Item specific hook
@@ -16,7 +17,7 @@ using System.Collections.Generic;
     Hook are additional,if you want to act multiplicative, do it in PostRecalculate
     Cooldown hook are MULTIPLICATIVE with other mod/BaseValue, if you want to make it Additional/Substractif, do it in PostRecalculate
 
-    To modify ItemValue use ModifyItem Hook, Item value are inside ModRecalculate class as public, Don't try to edit the private one ^^
+    To modify Items stats on character, use the ModifyHook with ModItemManager.AddStatToItem()
 
 
 
@@ -149,8 +150,7 @@ namespace PlexusUtils
     public class PlexusUtils : BaseUnityPlugin
     {
 
-        
-
+       
         public void Awake()
         {
             ModRecalculate.Init();

@@ -19,6 +19,9 @@
     <Reference Include="Facepunch.Steamworks">
       <HintPath>..\libs\Facepunch.Steamworks.dll</HintPath>
     </Reference>
+    <Reference Include="FrogtownShared">
+      <HintPath>..\libs\FrogtownShared.dll</HintPath>
+    </Reference>
     <Reference Include="KdTreeLib">
       <HintPath>..\libs\KdTreeLib.dll</HintPath>
     </Reference>
