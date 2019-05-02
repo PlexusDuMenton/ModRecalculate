@@ -21,12 +21,25 @@ namespace PlexusUtils
         SafeMoveSpeed,
         SafeRunningMoveSpeed,
 
+        JumpPower,
+        JumpCount,
+
         Damage,
         AttackSpeed,
 
         Crit,
         Armor,
         RunningArmor,
+
+        GlobalCoolDown,
+        CoolDownPrimary,
+        CoolDownSecondary,
+        CoolDownUtility,
+        CoolDownSpecial,
+        CountPrimary,
+        CountSecondary,
+        CountUtility,
+        CountSpecial,
     }
 
     public class ModItemStat
@@ -308,7 +321,6 @@ namespace PlexusUtils
                 }
             return Item;
         }
-
         public static ModItem operator -(ModItem Item, ModItemStat Stat)
         {
             if (Item.m_StatList.Exists(x => x.Stat == Stat.Stat))
@@ -322,7 +334,7 @@ namespace PlexusUtils
 
     static public class ModItemManager
     {
-        static public Dictionary<ItemIndex, ModItem> ModItemDictionary = new Dictionary<ItemIndex, ModItem>();
+        static public Dictionary<ItemIndex, ModItem> ModItemDictionary;
 
         static public void AddModItem(ItemIndex index, ModItem ModItem)
         {
@@ -371,15 +383,59 @@ namespace PlexusUtils
             }
         }
 
-        static public void Init()
+        static public void Update()
         {
+            ModItemDictionary = new Dictionary<ItemIndex, ModItem>();
             foreach (ItemIndex itemIndex in (ItemIndex[])Enum.GetValues(typeof(ItemIndex)))
             {
                 ModItemDictionary.Add(itemIndex, new ModItem(itemIndex));
             }
-
+            //Fun Start here
+            /*
             AddStatToItem(ItemIndex.PersonalShield, new ModItemStat(25, StatIndex.MaxShield));
+            AddStatToItem(ItemIndex.AlienHead, new ModItemStat(0,0,0.75f, StatIndex.GlobalCoolDown));
+            */
+        }
 
+        static public float GetBonusForStat(CharacterBody c,StatIndex stat)
+        {
+            float value = 0;
+            if (c.inventory)
+            {
+                foreach (ItemIndex itemIndex in (ItemIndex[])Enum.GetValues(typeof(ItemIndex)))
+                {
+                    if (c.inventory.GetItemCount(itemIndex) > 0)
+                        value += ModItemDictionary[itemIndex].GetFlatBonusFromCount(stat, c.inventory.GetItemCount(itemIndex));
+                }
+            }
+            return value;
+        }
+        static public float GetMultiplierForStat(CharacterBody c,StatIndex stat)
+        {
+            float value = 0;
+            if (c.inventory)
+            {
+                foreach (ItemIndex itemIndex in (ItemIndex[])Enum.GetValues(typeof(ItemIndex)))
+                {
+                    if (c.inventory.GetItemCount(itemIndex) > 0)
+                        value += ModItemDictionary[itemIndex].GetMultStackBonusFromCount(stat, c.inventory.GetItemCount(itemIndex));
+                }
+            }
+            return value;
+        }
+
+        static public float GetMultiplierForStatCD(CharacterBody c, StatIndex stat)
+        {
+            float value = 1;
+            if (c.inventory)
+            {
+                foreach (ItemIndex itemIndex in (ItemIndex[])Enum.GetValues(typeof(ItemIndex)))
+                {
+                    if (c.inventory.GetItemCount(itemIndex) > 0)
+                        value *= ModItemDictionary[itemIndex].GetMultStackBonusFromCount(stat, c.inventory.GetItemCount(itemIndex));
+                }
+            }
+            return value;
         }
 
     }

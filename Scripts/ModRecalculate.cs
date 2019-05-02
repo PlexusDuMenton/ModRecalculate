@@ -537,6 +537,8 @@ namespace PlexusUtils
         #endregion
         #endregion
 
+
+
         private static void Base_ModifyItem(CharacterBody character) //Yes it was fun making all those !
         {
             InfusionMult = m_base_InfusionMult;
@@ -723,10 +725,12 @@ namespace PlexusUtils
                 //Item Flat Bonus
                 HealthBonusItem += HookHandler("InfusionEffect", character);
                 HealthBonusItem += HookHandler("KnurlMaxHpEffect", character);
+                HealthBonusItem += ModItemManager.GetBonusForStat(character, StatIndex.MaxHealth);
 
                 //Item MultiplierBonus
                 hpbooster = HookHandler("ItemBoosHpEffect",character);
                 hpbooster += CustomBonusHealthMult;
+                hpbooster += ModItemManager.GetMultiplierForStat(character, StatIndex.MaxHealth);
             }
             //Applying flat bonus and Level up bonus
             MaxHealth = MaxHealth + HealthBonusItem;
@@ -784,7 +788,9 @@ namespace PlexusUtils
                 character.SetPropertyValue("maxHealth", character.maxHealth * 0.5f);
                 MaxShield += character.maxHealth;
             }
-            MaxShield *= (1+CustomBonusShieldMult);
+            MaxShield+= ModItemManager.GetBonusForStat(character,StatIndex.MaxShield);
+
+            MaxShield *= (1+CustomBonusShieldMult+ ModItemManager.GetMultiplierForStat(character, StatIndex.MaxShield) );
             return MaxShield;
         }
 
@@ -818,9 +824,17 @@ namespace PlexusUtils
             if ((bool)character.inventory)
             {
                 RegenBonus += (BaseRegen * HookHandler("SlugEffect",character)) - BaseRegen;
+                RegenBonus += ModItemManager.GetBonusForStat(character, StatIndex.Regen);
+                if (character.inventory.GetItemCount(ItemIndex.HealthDecay) > 0 && HealthDecayMult != 0)
+                    RegenBonus += ModItemManager.GetBonusForStat(character, StatIndex.SafeRegen);
                 RegenBonus += HookHandler("KnurlRegenEffect",character);
                 RegenBonus -= HookHandler("HealthDecayEffect",character);
             }
+            float totalRegen = (BaseRegen + RegenBonus);
+            float regenmult = 1+ ModItemManager.GetMultiplierForStat(character, StatIndex.Regen);
+            if (character.inventory.GetItemCount(ItemIndex.HealthDecay) > 0 && HealthDecayMult != 0)
+                RegenBonus += ModItemManager.GetMultiplierForStat(character, StatIndex.SafeRegen);
+
             return  BaseRegen + RegenBonus;
             
         }
@@ -899,6 +913,14 @@ namespace PlexusUtils
             if (character.HasBuff(BuffIndex.EngiTeamShield))
                 SpeedBonus += EngiTeamShieldSpeed;
 
+            SpeedBonus += ModItemManager.GetMultiplierForStat(character, StatIndex.MoveSpeed);
+            if (character.isSprinting)
+                SpeedBonus += ModItemManager.GetMultiplierForStat(character, StatIndex.RunningMoveSpeed);
+            if (character.outOfCombat && character.outOfDanger) { 
+                SpeedBonus += ModItemManager.GetMultiplierForStat(character, StatIndex.SafeMoveSpeed);
+                if (character.isSprinting)
+                    SpeedBonus += ModItemManager.GetMultiplierForStat(character, StatIndex.SafeRunningMoveSpeed);
+            }
 
             //Debuff Speed
             float SpeedMalus = 1f;
@@ -915,6 +937,16 @@ namespace PlexusUtils
             if (character.HasBuff(BuffIndex.Cripple))
                 ++SpeedMalus;
 
+            BaseMoveSpeed += ModItemManager.GetBonusForStat(character, StatIndex.MoveSpeed);
+            if (character.isSprinting)
+                BaseMoveSpeed += ModItemManager.GetBonusForStat(character, StatIndex.RunningMoveSpeed);
+            if (character.outOfCombat && character.outOfDanger)
+            {
+                BaseMoveSpeed += ModItemManager.GetBonusForStat(character, StatIndex.SafeMoveSpeed);
+                if (character.isSprinting)
+                    BaseMoveSpeed += ModItemManager.GetBonusForStat(character, StatIndex.SafeRunningMoveSpeed);
+            }
+
             float MoveSpeed = BaseMoveSpeed * (SpeedBonus / SpeedMalus);
             if ((bool)character.inventory)
             {
@@ -927,13 +959,18 @@ namespace PlexusUtils
         //Mobility
         static public float Base_JumpPower(CharacterBody character)
         {
-            return character.baseJumpPower + character.levelJumpPower * (character.level-1) + BonusJumpPower;
+            float JumpPower = character.baseJumpPower + character.levelJumpPower * (character.level - 1) + BonusJumpPower + ModItemManager.GetBonusForStat(character, StatIndex.JumpPower);
+            JumpPower *= 1 + ModItemManager.GetMultiplierForStat(character, StatIndex.JumpPower);
+            return JumpPower;
         }
         static public float Base_JumpCount(CharacterBody character)
         {
+            float JumpCount = character.baseJumpCount + BonusJumpCount + ModItemManager.GetBonusForStat(character, StatIndex.JumpCount);
             if (character.inventory)
-                return character.baseJumpCount + character.inventory.GetItemCount(ItemIndex.Feather) + BonusJumpCount;
-            return character.baseJumpCount + BonusJumpCount;
+                JumpCount += character.inventory.GetItemCount(ItemIndex.Feather);
+
+            JumpCount *= 1 + ModItemManager.GetMultiplierForStat(character, StatIndex.JumpCount);
+            return JumpCount;
         }
 
         //Damage
@@ -962,9 +999,10 @@ namespace PlexusUtils
         static public float Base_DamageRecalculation(CharacterBody character)
         {
             float BaseDamage = HookHandler("CharacterDefaultDamage",character);
+            BaseDamage += ModItemManager.GetBonusForStat(character, StatIndex.Damage);
 
             float DamageMult = HookHandler("DamageBoostEffect", character) + (character.CalcLunarDaggerPower() - 1f)* LunarDaggerDamageMult;
-
+            DamageMult += ModItemManager.GetMultiplierForStat(character, StatIndex.Damage);
             return BaseDamage*DamageMult;
         }
 
@@ -1004,6 +1042,9 @@ namespace PlexusUtils
             if (character.HasBuff(BuffIndex.WarCryBuff))
                 AttackSpeedMult += EnrageAncientWispAttackSpeed;
 
+
+            BaseAttackSpeed +=  ModItemManager.GetBonusForStat(character, StatIndex.AttackSpeed);
+            AttackSpeedMult += ModItemManager.GetMultiplierForStat(character, StatIndex.AttackSpeed);
             float AttackSpeed = BaseAttackSpeed * AttackSpeedMult;
             //Debuff
             AttackSpeed *= HookHandler("BettleJuiceAttackSpeedEffect",character);
@@ -1039,6 +1080,9 @@ namespace PlexusUtils
             }
             if (character.HasBuff(BuffIndex.FullCrit))
                 CriticalChance += HUDCrit;
+
+            CriticalChance += ModItemManager.GetBonusForStat(character, StatIndex.Crit);
+            CriticalChance *= 1 + ModItemManager.GetMultiplierForStat(character, StatIndex.AttackSpeed);
             return CriticalChance;
         }
 
@@ -1068,8 +1112,14 @@ namespace PlexusUtils
                 BonusArmor = character.inventory.GetItemCount(ItemIndex.DrizzlePlayerHelper) * DrizzlePlayerHelper;
                 BonusArmor += HookHandler("BucklerEffect",character);
             }
-                
-            return BaseArmor + BonusArmor;
+            float TotalArmor = BaseArmor + BonusArmor;
+            TotalArmor += ModItemManager.GetBonusForStat(character, StatIndex.Armor);
+            if (character.isSprinting)
+                TotalArmor += ModItemManager.GetBonusForStat(character, StatIndex.RunningArmor);
+            TotalArmor *= 1+ModItemManager.GetMultiplierForStat(character, StatIndex.Armor);
+            if (character.isSprinting)
+                TotalArmor *= 1+ ModItemManager.GetMultiplierForStat(character, StatIndex.RunningArmor);
+            return TotalArmor;
         }
 
         //CoolDown
@@ -1083,6 +1133,10 @@ namespace PlexusUtils
         static public float Base_CoolDownRecalculation(CharacterBody character)
         {
             float CoolDownMultiplier = 1f;
+            CoolDownMultiplier += ModItemManager.GetBonusForStat(character, StatIndex.GlobalCoolDown);
+
+            CoolDownMultiplier *= ModItemManager.GetMultiplierForStatCD(character, StatIndex.GlobalCoolDown);
+
             if (character.HasBuff(BuffIndex.GoldEmpowered))
                 CoolDownMultiplier *= GoldEmpoweredCD;
             if (character.inventory)
@@ -1090,45 +1144,80 @@ namespace PlexusUtils
             if (character.HasBuff(BuffIndex.NoCooldowns))
                 CoolDownMultiplier = 0.0f;
 
+
             return CoolDownMultiplier;
         }
 
         static public float Base_PrimaryCoolDownMultiplier(CharacterBody character)
         {
+            float CoolDownMultiplier = 1f;
+            CoolDownMultiplier += ModItemManager.GetBonusForStat(character, StatIndex.CoolDownPrimary);
+
+            CoolDownMultiplier *= ModItemManager.GetMultiplierForStatCD(character, StatIndex.CoolDownPrimary);
             return 1;
         }
         static public float Base_SecondaryCoolDownMultiplier(CharacterBody character)
         {
+            float CoolDownMultiplier = 1f;
+            CoolDownMultiplier += ModItemManager.GetBonusForStat(character, StatIndex.CoolDownSecondary);
+
+            CoolDownMultiplier *= ModItemManager.GetMultiplierForStatCD(character, StatIndex.CoolDownSecondary);
+
             if (character.inventory.GetItemCount(ItemIndex.SecondarySkillMagazine) > 0)
-                return SecondarySkillMagazineCD;
-            return 1;
+                CoolDownMultiplier *= SecondarySkillMagazineCD;
+            return CoolDownMultiplier;
         }
         static public float Base_UtilityCoolDownMultiplier(CharacterBody character)
         {
+            float CoolDownMultiplier = 1f;
+            CoolDownMultiplier += ModItemManager.GetBonusForStat(character, StatIndex.CoolDownUtility);
+
+            CoolDownMultiplier *= ModItemManager.GetMultiplierForStatCD(character, StatIndex.CoolDownUtility);
+
             if (character.inventory.GetItemCount(ItemIndex.UtilitySkillMagazine) > 0)
-                return UtilitySkillMagazineCD;
-            return 1;
+                CoolDownMultiplier *= UtilitySkillMagazineCD;
+            return CoolDownMultiplier;
         }
         static public float Base_SpecialCoolDownMultiplier(CharacterBody character)
         {
+            float CoolDownMultiplier = 1f;
+            CoolDownMultiplier += ModItemManager.GetBonusForStat(character, StatIndex.CoolDownSpecial);
+
+            CoolDownMultiplier *= ModItemManager.GetMultiplierForStatCD(character, StatIndex.CoolDownSpecial);
             return 1;
         }
 
         static public float Base_PrimaryStackCount(CharacterBody character)
         {
-            return 0;
+            float count = 0;
+            count += ModItemManager.GetBonusForStat(character, StatIndex.CountPrimary);
+
+            count *= ModItemManager.GetMultiplierForStat(character, StatIndex.CountPrimary);
+            return count;
         }
         static public float Base_SecondaryStackCount(CharacterBody character)
         {
-            return character.inventory.GetItemCount(ItemIndex.SecondarySkillMagazine) * SecondarySkillMagazineCount;
+            float count = 0;
+            count += ModItemManager.GetBonusForStat(character, StatIndex.CountSecondary);
+            count += character.inventory.GetItemCount(ItemIndex.SecondarySkillMagazine) * SecondarySkillMagazineCount;
+            count *= ModItemManager.GetMultiplierForStat(character, StatIndex.CountSecondary);
+            return count;
         }
         static public float Base_UtilityStackCount(CharacterBody character)
         {
-            return character.inventory.GetItemCount(ItemIndex.UtilitySkillMagazine) * UtilitySkillMagazineCount;
+            float count = 0;
+            count += ModItemManager.GetBonusForStat(character, StatIndex.CountUtility);
+            count += character.inventory.GetItemCount(ItemIndex.UtilitySkillMagazine) * UtilitySkillMagazineCount;
+            count *= ModItemManager.GetMultiplierForStat(character, StatIndex.CountUtility);
+            return count;
         }
         static public float Base_SpecialStackCount(CharacterBody character)
         {
-            return 0;
+            float count = 0;
+            count += ModItemManager.GetBonusForStat(character, StatIndex.CountSpecial);
+
+            count *= ModItemManager.GetMultiplierForStat(character, StatIndex.CountSpecial);
+            return count;
         }
         static public void ModdedRecalculate(On.RoR2.CharacterBody.orig_RecalculateStats orig, CharacterBody character)
         {
