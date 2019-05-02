@@ -17,9 +17,17 @@ Create a list of hook to add/remove stats, and ItemSpecific hook, even PostRecal
 
         Hook are additional,if you want to act multiplicative, do it in PostRecalculate
         Cooldown hook are MULTIPLICATIVE with other mod/BaseValue, if you want to make it Additional/Substractif, do it in PostRecalculate
-
+		
+		To modify ItemValue use ModifyItem Hook, Item value are inside ModRecalculate class as public, Don't try to edit the private one ^^
+		
+		To overide an existing hook (ignoring Original or Other hook) use the ResetHook(string HookName,bool TotalReset) function, please, only use it only when REALY needed, a hook can only be overided Once !
+		
+		
 
 	LIST (IN ORDER OF CALL) :
+	
+			ModifyItem
+	
             CharacterDefaultHealth
             InfusionEffect
             KnurlMaxHpEffect
@@ -81,6 +89,9 @@ Create a list of hook to add/remove stats, and ItemSpecific hook, even PostRecal
 
 
 ###Changelog
+0.3.0 : 
+Added Ability to overide hook, either allowing or blocking other hooks
+
 0.2.0 : 
 Added specific hook for DamageBoostEffect (multiplied with Character DefaultDamage
 Added Item Specific public value to edit from ModifyItem Hook

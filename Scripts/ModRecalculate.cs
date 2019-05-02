@@ -51,9 +51,20 @@ using UnityEngine.Networking;
             ModRecalculate.GlassCritStack -= 5;
         }
 
+        float OverWriterHook(CharacterBody character)
+        {
+            return 200 + 100 * (character.level-1);
+        }
+
+        void OverWriteHooker()
+        {
+            ModRecalculate.ResetHook("HealthRecalculation", true); //This line is used to Reset hook, if the TotalReset is true, it'll delete all hook, else it'll only delete de Base_hook
+            ModRecalculate.HealthRecalculation += OverWriterHook; //You have to implement your method after the Reset !
+        }
 
         public void Awake()
         {
+            OverWriteHooker(); //Look at OverWriteHooker()
             ModRecalculate.HealthRecalculation += delegate { return 5; }; //Simple +5 health after item are applied
             ModRecalculate.CharacterDefaultHealth += BonusHealth; // Apply BonusHealth function result to Health before item are applied
             ModRecalculate.ShieldItemEffect += ShieldCalculate;  // Apply Shield bonus function result to shield
@@ -131,34 +142,118 @@ namespace PlexusUtils
 {
 
     [BepInDependency("com.bepis.r2api")]
-    [BepInPlugin("com.Plexus.ModRecalculate", "ModRecalculate", "0.1.0")]
+    [BepInPlugin("com.Plexus.ModRecalculate", "ModRecalculate", "0.3.0")]
 
     public class PlexusUtils : BaseUnityPlugin
     {
+
+        
+
         public void Awake()
         {
             ModRecalculate.Init();
+            
         }
+    }
+
+    public enum OverideState
+    {
+        Free = 0, //Overide still didn't happen and can be used
+        Open = 1, //Overide as been used to change the Base formula
+        Closed = 2, //Overide prevent all other hook to happen
+        Warned = 3, //Closed and Error has been droped
     }
 
     static public class ModRecalculate
     {
 
         #region Hook
-        
+
+        static event Hook_floatHook bufferHook;
+
+
+        /// <summary>
+        /// Reset Hook is used to overwrite Hook
+        /// </summary>
+        /// <param name="HookName"> Name of the hook you want to overwrite</param>
+        /// <param name="TotalReset"> if false, simply delete the Base_Hook, if true prevent all other hooks </param>
+        public static void ResetHook(string HookName,bool TotalReset)
+        {
+            if ((OverideState)typeof(ModRecalculate).GetField(HookName + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null) != OverideState.Free) { 
+                FieldInfo f = typeof(ModRecalculate).GetField(HookName, BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public);
+                Delegate[] DelegateList = ((MulticastDelegate)f.GetValue(null)).GetInvocationList();
+                if (!TotalReset)
+                {
+                    if (DelegateList.Length > 1)
+                    {
+                        bufferHook = Delegate.CreateDelegate(typeof(Hook_floatHook), DelegateList[1].Target, DelegateList[1].Method.Name) as Hook_floatHook;
+                    }
+
+
+                    for (int i = 2; i < DelegateList.Length; i++)
+                    {
+                        bufferHook += Delegate.CreateDelegate(typeof(Hook_floatHook), DelegateList[i].Target, DelegateList[i].Method.Name) as Hook_floatHook;
+                    }
+
+                    f.SetValue(null, bufferHook);
+                    typeof(ModRecalculate).GetField(HookName + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).SetValue(null, OverideState.Open);
+                }
+                else
+                {
+                    f.SetValue(null, null);
+                    typeof(ModRecalculate).GetField(HookName + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).SetValue(null, OverideState.Closed);
+                }
+
+                
+            }else
+            {
+                throw new Exception("Error While trying to overwrite " + HookName + " Hook, Another Mod has allready overwrited it");
+            }
+
+
+        }
+
         //Used to add/Multiply together Hooks
-        private static float HookHandler(MulticastDelegate e ,CharacterBody character)
+        private static float HookHandler(string c ,CharacterBody character)
         {
             float value = 0;
-            foreach (Delegate d in e.GetInvocationList())
+            MulticastDelegate e = (MulticastDelegate)typeof(ModRecalculate).GetField(c, BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null);
+
+            if ((int)typeof(ModRecalculate).GetField(c + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null) >= (int)OverideState.Closed)
             {
-                value += (float)d.DynamicInvoke(character);
+                if (e.GetInvocationList().Length > 1 && (int)typeof(ModRecalculate).GetField(c + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null) != (int)OverideState.Closed)
+                {
+                    typeof(ModRecalculate).GetField(c + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).SetValue(null, (int)OverideState.Warned);
+                    Debug.LogError("Warning, There is Hook added but ingored since a mod decided to overide ALL HOOK on Hook : "+c);
+                }
+                return (float)e.GetInvocationList()[0].DynamicInvoke(character);
             }
-            return value;
+            else{
+                foreach (Delegate d in e.GetInvocationList())
+                {
+                    value += (float)d.DynamicInvoke(character);
+                }
+                return value;
+            }
+
+            
         }
-        private static float HookHandlerMultiplier(MulticastDelegate e, CharacterBody character)
+        private static float HookHandlerMultiplier(string c, CharacterBody character)
         {
+            
+
+            MulticastDelegate e = (MulticastDelegate)typeof(ModRecalculate).GetField(c, BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null);
             float value = (float)(e.GetInvocationList()[0].DynamicInvoke(character));
+            if ((int)typeof(ModRecalculate).GetField(c + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null) >= (int)OverideState.Closed)
+            {
+                if (e.GetInvocationList().Length > 1 && (int)typeof(ModRecalculate).GetField(c + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null) != (int)OverideState.Closed)
+                {
+                    typeof(ModRecalculate).GetField(c + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).SetValue(null, (int)OverideState.Warned);
+                    Debug.LogError("Warning, There is Hook added but ingored since a mod decided to overide ALL HOOK on Hook : " + c);
+                }
+                return value;
+            }
+            
             foreach (Delegate d in e.GetInvocationList())
             {
                 value *= (float)d.DynamicInvoke(character);
@@ -167,121 +262,120 @@ namespace PlexusUtils
         }
 
 
-        
-        
-        
+
+        public delegate float Hook_floatHook(CharacterBody character);
+        public delegate void Hook_voidHook(CharacterBody character);
 
         //Hook to apply change before the Update of Health and Shield
-        public delegate void Hook_PostRecalculateHook(CharacterBody character);
-        public static event Hook_PostRecalculateHook PostRecalculate;
 
-        public delegate void Hook_ModifyItem(CharacterBody character);
-        public static event Hook_ModifyItem ModifyItem;
+        public static event Hook_voidHook PostRecalculate;
+
+        public static event Hook_voidHook ModifyItem;
 
         //Health related Hook
         #region health
-        public delegate float Hook_HealthRecalculation(CharacterBody character);
-        public static event Hook_HealthRecalculation HealthRecalculation;
-        public delegate float Hook_CharacterDefaultHealth(CharacterBody character);
-        public static event Hook_CharacterDefaultHealth CharacterDefaultHealth;
-        public delegate float Hook_InfusionEffect(CharacterBody character);
-        public static event Hook_InfusionEffect InfusionEffect;
-        public delegate float Hook_KnurlMaxHpEffect(CharacterBody character);
-        public static event Hook_KnurlMaxHpEffect KnurlMaxHpEffect;
-        public delegate float Hook_ItemBoosHpEffect(CharacterBody character);
-        public static event Hook_ItemBoosHpEffect ItemBoosHpEffect;
+        public static event Hook_floatHook HealthRecalculation;
+        public static OverideState HealthRecalculation_Overide = 0;
+        public static event Hook_floatHook CharacterDefaultHealth;
+        public static OverideState CharacterDefaultHealth_Overide = 0;
+        public static event Hook_floatHook InfusionEffect;
+        public static OverideState InfusionEffect_Overide = 0;
+        public static event Hook_floatHook KnurlMaxHpEffect;
+        public static OverideState KnurlMaxHpEffect_Overide = 0;
+        public static event Hook_floatHook ItemBoosHpEffect;
+        public static OverideState ItemBoosHpEffect_Overide = 0;
         #endregion
 
         #region shield
         //Shield Related Hook
-        public delegate float Hook_ShieldRecalculation(CharacterBody character);
-        public static event Hook_ShieldRecalculation ShieldRecalculation;
-        public delegate float Hook_CharacterDefaultShield(CharacterBody character);
-        public static event Hook_CharacterDefaultShield CharacterDefaultShield;
-        public delegate float Hook_TranscendenceEffect(CharacterBody character);
-        public static event Hook_ShieldRecalculation TranscendenceEffect;
-        public delegate float Hook_ShieldItemEffect(CharacterBody character);
-        public static event Hook_ShieldItemEffect ShieldItemEffect;
+        public static event Hook_floatHook ShieldRecalculation;
+        public static OverideState ShieldRecalculation_Overide = 0;
+        public static event Hook_floatHook CharacterDefaultShield;
+        public static OverideState CharacterDefaultShield_Overide = 0;
+        public static event Hook_floatHook TranscendenceEffect;
+        public static OverideState TranscendenceEffect_Overide = 0;
+        public static event Hook_floatHook ShieldItemEffect;
+        public static OverideState ShieldItemEffect_Overide = 0;
         #endregion
         //HealthRegen related Hook
-        public delegate float Hook_RegenRecalculation(CharacterBody character);
-        public static event Hook_RegenRecalculation RegenRecalculation;
-        public delegate float Hook_CharacterDefaultRegen(CharacterBody character);
-        public static event Hook_CharacterDefaultRegen CharacterDefaultRegen;
-        public delegate float Hook_SlugEffect(CharacterBody character);
-        public static event Hook_SlugEffect SlugEffect;
-        public delegate float Hook_KnurlRegenEffect(CharacterBody character);
-        public static event Hook_KnurlRegenEffect KnurlRegenEffect;
-        public delegate float Hook_HealthDecayEffect(CharacterBody character);
-        public static event Hook_HealthDecayEffect HealthDecayEffect;
+        public static event Hook_floatHook RegenRecalculation;
+        public static OverideState RegenRecalculation_Overide = 0;
+        public static event Hook_floatHook CharacterDefaultRegen;
+        public static OverideState CharacterDefaultRegen_Overide = 0;
+        public static event Hook_floatHook SlugEffect;
+        public static OverideState SlugEffect_Overide = 0;
+        public static event Hook_floatHook KnurlRegenEffect;
+        public static OverideState KnurlRegenEffect_Overide = 0;
+        public static event Hook_floatHook HealthDecayEffect;
+        public static OverideState HealthDecayEffect_Overide = 0;
 
         //MoveSpeed related Hook
-        public delegate float Hook_MoveSpeedRecalculation(CharacterBody character);
-        public static event Hook_MoveSpeedRecalculation MoveSpeedRecalculation;
-        public delegate float Hook_CharacterDefaultSpeed(CharacterBody character);
-        public static event Hook_CharacterDefaultSpeed CharacterDefaultSpeed;
-        public delegate float Hook_RedWimpHoofEffect(CharacterBody character);
-        public static event Hook_RedWimpHoofEffect RedWimpHoofEffect;
-        public delegate float Hook_EnergyDrinkEffect(CharacterBody character);
-        public static event Hook_EnergyDrinkEffect EnergyDrinkEffect;
-        public delegate float Hook_BettleJuiceSpeedEffect(CharacterBody character);
-        public static event Hook_BettleJuiceSpeedEffect BettleJuiceSpeedEffect;
+        public static event Hook_floatHook MoveSpeedRecalculation;
+        public static OverideState MoveSpeedRecalculation_Overide = 0;
+        public static event Hook_floatHook CharacterDefaultSpeed;
+        public static OverideState CharacterDefaultSpeed_Overide = 0;
+        public static event Hook_floatHook RedWimpHoofEffect;
+        public static OverideState RedWimpHoofEffect_Overide = 0;
+        public static event Hook_floatHook EnergyDrinkEffect;
+        public static OverideState EnergyDrinkEffect_Overide = 0;
+        public static event Hook_floatHook BettleJuiceSpeedEffect;
+        public static OverideState BettleJuiceSpeedEffect_Overide = 0;
 
-        public delegate float Hook_JumpPower(CharacterBody character);
-        public static event Hook_JumpPower JumpPower;
-        public delegate float Hook_JumpCount(CharacterBody character);
-        public static event Hook_JumpCount JumpCount;
+        public static event Hook_floatHook JumpPower;
+        public static OverideState JumpPower_Overide = 0;
+        public static event Hook_floatHook JumpCount;
+        public static OverideState JumpCount_Overide = 0;
 
-        public delegate float Hook_DamageRecalculation(CharacterBody character);
-        public static event Hook_DamageRecalculation DamageRecalculation;
-        public delegate float Hook_CharacterDefaultDamage(CharacterBody character);
-        public static event Hook_CharacterDefaultDamage CharacterDefaultDamage;
-        public delegate float Hook_BettleJuiceDamageEffect(CharacterBody character);
-        public static event Hook_BettleJuiceDamageEffect BettleJuiceDamageEffect;
-        public delegate float Hook_DamageBoostEffect(CharacterBody character);
-        public static event Hook_DamageBoostEffect DamageBoostEffect;
+        public static event Hook_floatHook DamageRecalculation;
+        public static OverideState DamageRecalculation_Overide = 0;
+        public static event Hook_floatHook CharacterDefaultDamage;
+        public static OverideState CharacterDefaultDamage_Overide = 0;
+        public static event Hook_floatHook BettleJuiceDamageEffect;
+        public static OverideState BettleJuiceDamageEffect_Overide = 0;
+        public static event Hook_floatHook DamageBoostEffect;
+        public static OverideState DamageBoostEffect_Overide = 0;
 
-        public delegate float Hook_AttackSpeedRecalculation(CharacterBody character);
-        public static event Hook_AttackSpeedRecalculation AttackSpeedRecalculation;
-        public delegate float Hook_CharacterDefaultAttackSpeed(CharacterBody character);
-        public static event Hook_CharacterDefaultAttackSpeed CharacterDefaultAttackSpeed;
-        public delegate float Hook_SyringueEffect(CharacterBody character);
-        public static event Hook_SyringueEffect SyringueEffect;
-        public delegate float Hook_BettleJuiceAttackSpeedEffect(CharacterBody character);
-        public static event Hook_BettleJuiceAttackSpeedEffect BettleJuiceAttackSpeedEffect;
+        public static event Hook_floatHook AttackSpeedRecalculation;
+        public static OverideState AttackSpeedRecalculation_Overide = 0;
+        public static event Hook_floatHook CharacterDefaultAttackSpeed;
+        public static OverideState CharacterDefaultAttackSpeed_Overide = 0;
+        public static event Hook_floatHook SyringueEffect;
+        public static OverideState SyringueEffect_Overide = 0;
+        public static event Hook_floatHook BettleJuiceAttackSpeedEffect;
+        public static OverideState BettleJuiceAttackSpeedEffect_Overide = 0;
 
-        public delegate float Hook_CritRecalculation(CharacterBody character);
-        public static event Hook_CritRecalculation CritRecalculation;
-        public delegate float Hook_CharacterDefaultCrit(CharacterBody character);
-        public static event Hook_CharacterDefaultCrit CharacterDefaultCrit;
-        public delegate float Hook_GlassesEffect(CharacterBody character);
-        public static event Hook_GlassesEffect GlassesEffect;
+        public static event Hook_floatHook CritRecalculation;
+        public static OverideState CritRecalculation_Overide = 0;
+        public static event Hook_floatHook CharacterDefaultCrit;
+        public static OverideState CharacterDefaultCrit_Overide = 0;
+        public static event Hook_floatHook GlassesEffect;
+        public static OverideState GlassesEffect_Overide = 0;
 
-        public delegate float Hook_ArmorRecalculation(CharacterBody character);
-        public static event Hook_ArmorRecalculation ArmorRecalculation;
-        public delegate float Hook_CharacterDefaultArmor(CharacterBody character);
-        public static event Hook_CharacterDefaultArmor CharacterDefaultArmor;
-        public delegate float Hook_BucklerEffect(CharacterBody character);
-        public static event Hook_BucklerEffect BucklerEffect;
+        public static event Hook_floatHook ArmorRecalculation;
+        public static OverideState ArmorRecalculation_Overide = 0;
+        public static event Hook_floatHook CharacterDefaultArmor;
+        public static OverideState CharacterDefaultArmor_Overide = 0;
+        public static event Hook_floatHook BucklerEffect;
+        public static OverideState BucklerEffect_Overide = 0;
 
-        public delegate float Hook_CoolDownRecalculation(CharacterBody character);
-        public static event Hook_CoolDownRecalculation CoolDownRecalculation;
-        public delegate float Hook_AlienHeadEffect(CharacterBody character);
-        public static event Hook_AlienHeadEffect AlienHeadEffect;
+        public static event Hook_floatHook CoolDownRecalculation;
+        public static OverideState CoolDownRecalculation_Overide = 0;
+        public static event Hook_floatHook AlienHeadEffect;
+        public static OverideState AlienHeadEffect_Overide = 0;
 
-        public delegate float Hook_PrimaryCoolDownMultiplier(CharacterBody character);
-        public static event Hook_PrimaryCoolDownMultiplier PrimaryCoolDownMultiplier;
-        public delegate float Hook_SecondaryCoolDownMultiplier(CharacterBody character);
-        public static event Hook_SecondaryCoolDownMultiplier SecondaryCoolDownMultiplier;
-        public delegate float Hook_UtilityCoolDownMultiplier(CharacterBody character);
-        public static event Hook_UtilityCoolDownMultiplier UtilityCoolDownMultiplier;
+        public static event Hook_floatHook PrimaryCoolDownMultiplier;
+        public static OverideState PrimaryCoolDownMultiplier_Overide = 0;
+        public static event Hook_floatHook SecondaryCoolDownMultiplier;
+        public static OverideState SecondaryCoolDownMultiplier_Overide = 0;
+        public static event Hook_floatHook UtilityCoolDownMultiplier;
+        public static OverideState UtilityCoolDownMultiplier_Overide = 0;
 
-        public delegate float Hook_PrimaryStackCount(CharacterBody character);
-        public static event Hook_PrimaryStackCount PrimaryStackCount;
-        public delegate float Hook_SecondaryStackCount(CharacterBody character);
-        public static event Hook_SecondaryStackCount SecondaryStackCount;
-        public delegate float Hook_UtilityStackCount(CharacterBody character);
-        public static event Hook_UtilityStackCount UtilityStackCount;
+        public static event Hook_floatHook PrimaryStackCount;
+        public static OverideState PrimaryStackCount_Overide = 0;
+        public static event Hook_floatHook SecondaryStackCount;
+        public static OverideState SecondaryStackCount_Overide = 0;
+        public static event Hook_floatHook UtilityStackCount;
+        public static OverideState UtilityStackCount_Overide = 0;
         #endregion
 
         #region VariableHell
@@ -605,18 +699,18 @@ namespace PlexusUtils
         {
             //CharacterLinked Health Stats
             
-            float MaxHealth = HookHandler(CharacterDefaultHealth,character);
+            float MaxHealth = HookHandler("CharacterDefaultHealth",character);
             float HealthBonusItem = 0;
             float hpbooster = 0;
 
             //Item Linked Bonus
             if ((bool)character.inventory) { 
                 //Item Flat Bonus
-                HealthBonusItem += HookHandler(InfusionEffect, character);
-                HealthBonusItem += HookHandler(KnurlMaxHpEffect, character);
+                HealthBonusItem += HookHandler("InfusionEffect", character);
+                HealthBonusItem += HookHandler("KnurlMaxHpEffect", character);
 
                 //Item MultiplierBonus
-                hpbooster = HookHandler(ItemBoosHpEffect,character);
+                hpbooster = HookHandler("ItemBoosHpEffect",character);
             }
             //Applying flat bonus and Level up bonus
             MaxHealth = MaxHealth + HealthBonusItem;
@@ -652,13 +746,13 @@ namespace PlexusUtils
         static public float Base_ShieldRecalculation(CharacterBody character)
         {
             //CharacterLinked Shield Stats
-            float MaxShield = HookHandler(CharacterDefaultShield,character);
+            float MaxShield = HookHandler("CharacterDefaultShield",character);
 
             //ShieldItem Calculation (There is hook for it)
             if ((bool)character.inventory)
             {
-                MaxShield += HookHandler(TranscendenceEffect,character);
-                MaxShield += HookHandler(ShieldItemEffect,character);
+                MaxShield += HookHandler("TranscendenceEffect",character);
+                MaxShield += HookHandler("ShieldItemEffect",character);
             }
 
             //Default Game Buff
@@ -702,14 +796,14 @@ namespace PlexusUtils
         static public float Base_RegenRecalculation(CharacterBody character)
         {
 
-            float BaseRegen = HookHandler(CharacterDefaultRegen,character);
+            float BaseRegen = HookHandler("CharacterDefaultRegen",character);
             float RegenBonus = 0;
             //Item Related
             if ((bool)character.inventory)
             {
-                RegenBonus += (BaseRegen * HookHandler(SlugEffect,character)) - BaseRegen;
-                RegenBonus += HookHandler(KnurlRegenEffect,character);
-                RegenBonus -= HookHandler(HealthDecayEffect,character);
+                RegenBonus += (BaseRegen * HookHandler("SlugEffect",character)) - BaseRegen;
+                RegenBonus += HookHandler("KnurlRegenEffect",character);
+                RegenBonus -= HookHandler("HealthDecayEffect",character);
             }
             return  BaseRegen + RegenBonus;
             
@@ -755,9 +849,9 @@ namespace PlexusUtils
         }
         static public float Base_MoveSpeedRecalculation(CharacterBody character)
         {
-            float BaseMoveSpeed = HookHandler(CharacterDefaultSpeed,character);
+            float BaseMoveSpeed = HookHandler("CharacterDefaultSpeed",character);
 
-            float SpeedBonus = HookHandler(RedWimpHoofEffect,character);
+            float SpeedBonus = HookHandler("RedWimpHoofEffect",character);
 
 
             //More weird stuff
@@ -772,7 +866,7 @@ namespace PlexusUtils
             //SpeedBonus
             if ((bool)character.inventory)
             {
-                SpeedBonus += HookHandler(EnergyDrinkEffect,character);
+                SpeedBonus += HookHandler("EnergyDrinkEffect",character);
             }
             if (character.HasBuff(BuffIndex.BugWings))
                 SpeedBonus += BugWingBuff;
@@ -808,7 +902,7 @@ namespace PlexusUtils
             float MoveSpeed = BaseMoveSpeed * (SpeedBonus / SpeedMalus);
             if ((bool)character.inventory)
             {
-                MoveSpeed *= HookHandler(BettleJuiceSpeedEffect,character);
+                MoveSpeed *= HookHandler("BettleJuiceSpeedEffect",character);
             }
 
             return MoveSpeed;
@@ -843,7 +937,7 @@ namespace PlexusUtils
             int DamageBoostCount = character.inventory ? character.inventory.GetItemCount(ItemIndex.BoostDamage) : 0;
             if (DamageBoostCount > 0)
                 DamageBoost += DamageBoostCount * DamageBoost;
-            DamageBoost -= HookHandler(BettleJuiceDamageEffect, character);
+            DamageBoost -= HookHandler("BettleJuiceDamageEffect", character);
 
             if (character.HasBuff(BuffIndex.GoldEmpowered))
                 DamageBoost += GoldEmpoweredDamage;
@@ -851,9 +945,9 @@ namespace PlexusUtils
         }
         static public float Base_DamageRecalculation(CharacterBody character)
         {
-            float BaseDamage = HookHandler(CharacterDefaultDamage,character);
+            float BaseDamage = HookHandler("CharacterDefaultDamage",character);
 
-            float DamageMult = HookHandler(DamageBoostEffect, character) + (character.CalcLunarDaggerPower() - 1f)* LunarDaggerDamageMult;
+            float DamageMult = HookHandler("DamageBoostEffect", character) + (character.CalcLunarDaggerPower() - 1f)* LunarDaggerDamageMult;
 
             return BaseDamage*DamageMult;
         }
@@ -875,12 +969,12 @@ namespace PlexusUtils
         }
         static public float Base_AttackSpeedRecalculation(CharacterBody character)
         {
-            float BaseAttackSpeed = HookHandler(CharacterDefaultAttackSpeed,character);
+            float BaseAttackSpeed = HookHandler("CharacterDefaultAttackSpeed",character);
 
             //Item efect
             float AttackSpeedBonus = 1f;
             if (character.inventory) { 
-                AttackSpeedBonus += HookHandler(SyringueEffect,character);
+                AttackSpeedBonus += HookHandler("SyringueEffect",character);
                 if (character.inventory.currentEquipmentIndex == EquipmentIndex.AffixYellow)
                     AttackSpeedBonus += AffixYellowAttackSpeed;
             }
@@ -896,7 +990,7 @@ namespace PlexusUtils
 
             float AttackSpeed = BaseAttackSpeed * AttackSpeedMult;
             //Debuff
-            AttackSpeed *= HookHandler(BettleJuiceAttackSpeedEffect,character);
+            AttackSpeed *= HookHandler("BettleJuiceAttackSpeedEffect",character);
 
             return AttackSpeed;
         }
@@ -914,10 +1008,10 @@ namespace PlexusUtils
         }
         static public float Base_CritRecalculation(CharacterBody character)
         {
-            float CriticalChance = HookHandler(CharacterDefaultCrit,character);
+            float CriticalChance = HookHandler("CharacterDefaultCrit",character);
 
             if (character.inventory) {
-                CriticalChance += HookHandler(GlassesEffect,character);
+                CriticalChance += HookHandler("GlassesEffect",character);
                 if (character.inventory.GetItemCount(ItemIndex.AttackSpeedOnCrit) > 0)
                     CriticalChance += PredatoryInstincCrit + PredatoryInstincCritStack*(character.inventory.GetItemCount(ItemIndex.AttackSpeedOnCrit)-1);
                 if (character.inventory.GetItemCount(ItemIndex.CooldownOnCrit) > 0)
@@ -945,7 +1039,7 @@ namespace PlexusUtils
         }
         static public float Base_ArmorRecalculation(CharacterBody character)
         {
-            float BaseArmor = HookHandler(CharacterDefaultArmor,character);
+            float BaseArmor = HookHandler("CharacterDefaultArmor",character);
             float BonusArmor = 0;
 
             if (character.HasBuff(BuffIndex.ArmorBoost))
@@ -956,7 +1050,7 @@ namespace PlexusUtils
             if (character.inventory)
             {
                 BonusArmor = character.inventory.GetItemCount(ItemIndex.DrizzlePlayerHelper) * DrizzlePlayerHelper;
-                BonusArmor += HookHandler(BucklerEffect,character);
+                BonusArmor += HookHandler("BucklerEffect",character);
             }
                 
             return BaseArmor + BonusArmor;
@@ -976,7 +1070,7 @@ namespace PlexusUtils
             if (character.HasBuff(BuffIndex.GoldEmpowered))
                 CoolDownMultiplier *= GoldEmpoweredCD;
             if (character.inventory)
-                CoolDownMultiplier *= HookHandler(AlienHeadEffect,character);
+                CoolDownMultiplier *= HookHandler("AlienHeadEffect",character);
             if (character.HasBuff(BuffIndex.NoCooldowns))
                 CoolDownMultiplier = 0.0f;
 
@@ -1036,44 +1130,44 @@ namespace PlexusUtils
             float preShield = character.maxShield;
 
 
-            character.SetPropertyValue("maxHealth", HookHandler(HealthRecalculation,character));
+            character.SetPropertyValue("maxHealth", HookHandler("HealthRecalculation",character));
 
-            character.SetPropertyValue("maxShield", HookHandler(ShieldRecalculation,character));
+            character.SetPropertyValue("maxShield", HookHandler("ShieldRecalculation",character));
 
-            character.SetPropertyValue("regen", HookHandler(RegenRecalculation,character));
+            character.SetPropertyValue("regen", HookHandler("RegenRecalculation",character));
 
-            character.SetPropertyValue("moveSpeed" , HookHandler(MoveSpeedRecalculation,character));
+            character.SetPropertyValue("moveSpeed" , HookHandler("MoveSpeedRecalculation",character));
 
             character.SetPropertyValue("acceleration" , character.moveSpeed / character.baseMoveSpeed* character.baseAcceleration); // No real need to add hook, well, if people come to ask me for it I guess I'll do
 
-            character.SetPropertyValue("jumpPower" , HookHandler(JumpPower,character));
+            character.SetPropertyValue("jumpPower" , HookHandler("JumpPower",character));
 
             character.SetPropertyValue("maxJumpHeight" , Trajectory.CalculateApex(character.jumpPower)); // No real need to add hook, well, if people come to ask me for it I guess I'll do
 
-            character.SetPropertyValue("maxJumpCount" , (int)HookHandler(JumpCount,character));
-            character.SetPropertyValue("damage", HookHandler(DamageRecalculation,character));
+            character.SetPropertyValue("maxJumpCount" , (int)HookHandler("JumpCount",character));
+            character.SetPropertyValue("damage", HookHandler("DamageRecalculation",character));
 
-            character.SetPropertyValue("attackSpeed", HookHandler(AttackSpeedRecalculation,character));
+            character.SetPropertyValue("attackSpeed", HookHandler("AttackSpeedRecalculation",character));
             
-            character.SetPropertyValue("crit", HookHandler(CritRecalculation,character));
-            character.SetPropertyValue("armor", HookHandler(ArmorRecalculation,character));
+            character.SetPropertyValue("crit", HookHandler("CritRecalculation",character));
+            character.SetPropertyValue("armor", HookHandler("ArmorRecalculation",character));
             //CoolDown
             
-            float CoolDownMultiplier = HookHandler(CoolDownRecalculation,character);
+            float CoolDownMultiplier = HookHandler("CoolDownRecalculation",character);
             if (character.inventory) { 
                 if ((bool) character.GetFieldValue<SkillLocator>("skillLocator").primary)
-                    character.GetFieldValue<SkillLocator>("skillLocator").primary.cooldownScale = HookHandlerMultiplier(PrimaryCoolDownMultiplier, character) * CoolDownMultiplier;
+                    character.GetFieldValue<SkillLocator>("skillLocator").primary.cooldownScale = HookHandlerMultiplier("PrimaryCoolDownMultiplier", character) * CoolDownMultiplier;
                     if (character.GetFieldValue<SkillLocator>("skillLocator").primary.baseMaxStock > 1)
-                        character.GetFieldValue<SkillLocator>("skillLocator").primary.SetBonusStockFromBody((int)HookHandler(PrimaryStackCount,character));
+                        character.GetFieldValue<SkillLocator>("skillLocator").primary.SetBonusStockFromBody((int)HookHandler("PrimaryStackCount",character));
                 if ((bool) character.GetFieldValue<SkillLocator>("skillLocator").secondary)
                 {
-                    character.GetFieldValue<SkillLocator>("skillLocator").secondary.cooldownScale = HookHandlerMultiplier(SecondaryCoolDownMultiplier,character) * CoolDownMultiplier;
-                    character.GetFieldValue<SkillLocator>("skillLocator").secondary.SetBonusStockFromBody((int)HookHandler(SecondaryStackCount,character));
+                    character.GetFieldValue<SkillLocator>("skillLocator").secondary.cooldownScale = HookHandlerMultiplier("SecondaryCoolDownMultiplier",character) * CoolDownMultiplier;
+                    character.GetFieldValue<SkillLocator>("skillLocator").secondary.SetBonusStockFromBody((int)HookHandler("SecondaryStackCount",character));
                 }
                 if ((bool) character.GetFieldValue<SkillLocator>("skillLocator").utility)
                 {
-                    character.GetFieldValue<SkillLocator>("skillLocator").utility.cooldownScale = HookHandlerMultiplier(UtilityCoolDownMultiplier,character)* CoolDownMultiplier;
-                    character.GetFieldValue<SkillLocator>("skillLocator").utility.SetBonusStockFromBody((int)HookHandler(UtilityStackCount,character));
+                    character.GetFieldValue<SkillLocator>("skillLocator").utility.cooldownScale = HookHandlerMultiplier("UtilityCoolDownMultiplier",character)* CoolDownMultiplier;
+                    character.GetFieldValue<SkillLocator>("skillLocator").utility.SetBonusStockFromBody((int)HookHandler("UtilityStackCount",character));
                 }
                 if ((bool) character.GetFieldValue<SkillLocator>("skillLocator").special)
                     character.GetFieldValue<SkillLocator>("skillLocator").special.cooldownScale = CoolDownMultiplier;
