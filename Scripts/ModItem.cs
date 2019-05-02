@@ -29,76 +29,15 @@ namespace PlexusUtils
         RunningArmor,
     }
 
-    public class ModItemStats
+    public class ModItemStat
     {
         public StatIndex Stat;
-
-
         private float m_BaseBonus;
         private float m_StackBonus;
         private float m_BaseMultBonus;
         private float m_StackMultBonus;
 
-        public static ModItemStats operator +(ModItemStats a, ModItemStats b)
-        {
-            a.m_BaseBonus += b.m_BaseBonus;
-            a.m_StackBonus += b.m_StackBonus;
-            a.m_BaseMultBonus += b.m_BaseMultBonus;
-            a.m_StackMultBonus += b.m_StackMultBonus;
-            return a;
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="FlatBonus">Flat bonus when player Have the item</param>
-        /// <param name="FlatStackBonus">Flat bonus for each additional item the player own</param>
-        /// <param name="MultBonus">Multiplicative bonus when player Have the item</param>
-        /// <param name="MultStackBonus">Multiplicative bonus for each additional item the player own</param>
-        /// <param name="Stat"></param>
-        public ModItemStats(float FlatBonus, float FlatStackBonus, float MultBonus, float MultStackBonus, StatIndex Stat)
-        {
-            m_BaseBonus = FlatBonus;
-            m_StackBonus = FlatStackBonus;
-            m_BaseMultBonus = MultBonus;
-            m_StackMultBonus = MultStackBonus;
-            this.Stat = Stat;
-        }
-        /// <summary>
-        /// Set Flat and Stack Bonusat the same time, if you want to set the separatly use ModItemStats(float FlatBonus, float StackBonus, StatIndex Stat)
-        /// </summary>
-        /// <param name="FlatBonus">Flat bonus for each item the player own</param>
-        /// <param name="Stat"></param>
-        public ModItemStats(float FlatBonus, StatIndex Stat)
-        {
-            m_BaseBonus = FlatBonus;
-            m_StackBonus = FlatBonus;
-            m_BaseMultBonus = 0;
-            m_StackMultBonus = 0;
-            this.Stat = Stat;
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="FlatBonus">Flat bonus when player Have the item</param>
-        /// <param name="FlatStackBonus">Flat bonus for each additional item the player own</param>
-        /// <param name="MultBonus">Multiplicative bonus for each item the player own</param>
-        public ModItemStats(float FlatBonus, float StackBonus, StatIndex Stat)
-        {
-            m_BaseBonus = FlatBonus;
-            m_StackBonus = StackBonus;
-            m_BaseMultBonus = 0;
-            m_StackMultBonus = 0;
-            this.Stat = Stat;
-        }
-        public ModItemStats(float FlatBonus, float StackBonus, float MultBonus, StatIndex Stat)
-        {
-            m_BaseBonus = FlatBonus;
-            m_StackBonus = StackBonus;
-            m_BaseMultBonus = MultBonus;
-            m_StackMultBonus = MultBonus;
-            this.Stat = Stat;
-        }
-
+        #region Properties
         public float FlatBonus { get { return m_BaseBonus; } }
         public float StackBonus { get { return m_StackBonus; } }
         public float MultBonus { get { return m_BaseMultBonus; } }
@@ -116,11 +55,113 @@ namespace PlexusUtils
                 return (count - 1) * m_StackMultBonus + m_BaseMultBonus;
             return 0;
         }
+        #endregion
+
+        
+
+        #region Constructor
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="FlatBonus">Flat bonus when player Have the item</param>
+        /// <param name="FlatStackBonus">Flat bonus for each additional item the player own</param>
+        /// <param name="MultBonus">Multiplicative bonus when player Have the item</param>
+        /// <param name="MultStackBonus">Multiplicative bonus for each additional item the player own</param>
+        /// <param name="Stat"></param>
+        public ModItemStat(float FlatBonus, float FlatStackBonus, float MultBonus, float MultStackBonus, StatIndex Stat)
+        {
+            m_BaseBonus = FlatBonus;
+            m_StackBonus = FlatStackBonus;
+            m_BaseMultBonus = MultBonus;
+            m_StackMultBonus = MultStackBonus;
+            this.Stat = Stat;
+        }
+        /// <summary>
+        /// Set Flat and Stack Bonusat the same time, if you want to set the separatly use ModItemStats(float FlatBonus, float StackBonus, StatIndex Stat)
+        /// </summary>
+        /// <param name="FlatBonus">Flat bonus for each item the player own</param>
+        /// <param name="Stat"></param>
+        public ModItemStat(float FlatBonus, StatIndex Stat)
+        {
+            m_BaseBonus = FlatBonus;
+            m_StackBonus = FlatBonus;
+            m_BaseMultBonus = 0;
+            m_StackMultBonus = 0;
+            this.Stat = Stat;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="FlatBonus">Flat bonus when player Have the item</param>
+        /// <param name="FlatStackBonus">Flat bonus for each additional item the player own</param>
+        /// <param name="MultBonus">Multiplicative bonus for each item the player own</param>
+        public ModItemStat(float FlatBonus, float StackBonus, StatIndex Stat)
+        {
+            m_BaseBonus = FlatBonus;
+            m_StackBonus = StackBonus;
+            m_BaseMultBonus = 0;
+            m_StackMultBonus = 0;
+            this.Stat = Stat;
+        }
+        public ModItemStat(float FlatBonus, float StackBonus, float MultBonus, StatIndex Stat)
+        {
+            m_BaseBonus = FlatBonus;
+            m_StackBonus = StackBonus;
+            m_BaseMultBonus = MultBonus;
+            m_StackMultBonus = MultBonus;
+            this.Stat = Stat;
+        }
+        #endregion
+
+        #region Operator
+        public static ModItemStat operator +(ModItemStat a, ModItemStat b)
+        {
+            a.m_BaseBonus += b.m_BaseBonus;
+            a.m_StackBonus += b.m_StackBonus;
+            a.m_BaseMultBonus += b.m_BaseMultBonus;
+            a.m_StackMultBonus += b.m_StackMultBonus;
+            return a;
+        }
+        public static ModItemStat operator -(ModItemStat a, ModItemStat b)
+        {
+            a.m_BaseBonus -= b.m_BaseBonus;
+            a.m_StackBonus -= b.m_StackBonus;
+            a.m_BaseMultBonus -= b.m_BaseMultBonus;
+            a.m_StackMultBonus -= b.m_StackMultBonus;
+            return a;
+        }
+        public static ModItemStat operator *(ModItemStat a, float b)
+        {
+            a.m_BaseBonus *= b;
+            a.m_StackBonus *= b;
+            a.m_BaseMultBonus *= b;
+            a.m_StackMultBonus *= b;
+            return a;
+        }
+        public static ModItemStat operator /(ModItemStat a, float b)
+        {
+            a.m_BaseBonus /= b;
+            a.m_StackBonus /= b;
+            a.m_BaseMultBonus /= b;
+            a.m_StackMultBonus /= b;
+            return a;
+        }
+        #endregion
+
     }
 
     public class ModItem
     {
-        public ItemIndex Index;
+        private ItemIndex m_Index;
+        
+
+        private List<ModItemStat> m_StatList;
+
+
+        #region properties
+        public List<ModItemStat> GetStatsList { get { return m_StatList; } }
+        public ItemIndex Index { get { return m_Index; } private set { m_Index = value; } }
+
         /// <summary>
         /// Flat bonus of the First Item
         /// </summary>
@@ -128,7 +169,7 @@ namespace PlexusUtils
         /// <returns></returns>
         public float FlatBonus(StatIndex Stat)
         {
-            ModItemStats s = m_StatList.Find(x => x.Stat == Stat);
+            ModItemStat s = m_StatList.Find(x => x.Stat == Stat);
             if (s != null)
                 return s.FlatBonus;
             return 0;
@@ -140,7 +181,7 @@ namespace PlexusUtils
         /// <returns></returns>
         public float StackBonus(StatIndex Stat)
         {
-            ModItemStats s = m_StatList.Find(x => x.Stat == Stat);
+            ModItemStat s = m_StatList.Find(x => x.Stat == Stat);
             if (s != null)
                 return s.StackBonus;
             return 0;
@@ -152,7 +193,7 @@ namespace PlexusUtils
         /// <returns></returns>
         public float MultBonus(StatIndex Stat)
         {
-            ModItemStats s = m_StatList.Find(x => x.Stat == Stat);
+            ModItemStat s = m_StatList.Find(x => x.Stat == Stat);
             if (s != null)
                 return s.MultBonus;
             return 0;
@@ -164,12 +205,11 @@ namespace PlexusUtils
         /// <returns></returns>
         public float MultStackBonus(StatIndex Stat)
         {
-            ModItemStats s = m_StatList.Find(x => x.Stat == Stat);
+            ModItemStat s = m_StatList.Find(x => x.Stat == Stat);
             if (s != null)
                 return s.MultStackBonus;
             return 0;
         }
-
         /// <summary>
         /// Get FlatBonus From Count
         /// </summary>
@@ -178,7 +218,7 @@ namespace PlexusUtils
         /// <returns></returns>
         public float GetFlatBonusFromCount(StatIndex Stat, int Count)
         {
-            ModItemStats s = m_StatList.Find(x => x.Stat == Stat);
+            ModItemStat s = m_StatList.Find(x => x.Stat == Stat);
             if (s != null)
                 return s.GetFlatBonusFromCount(Count);
             return 0;
@@ -191,24 +231,156 @@ namespace PlexusUtils
         /// <returns></returns>
         public float GetMultStackBonusFromCount(StatIndex Stat, int Count)
         {
-            ModItemStats s = m_StatList.Find(x => x.Stat == Stat);
+            ModItemStat s = m_StatList.Find(x => x.Stat == Stat);
             if (s != null)
                 return s.GetPercentBonusFromCount(Count);
             return 0;
         }
+        #endregion
 
-        private List<ModItemStats> m_StatList;
 
-        /*
-        public static ModItem operator +(ModItem Item, ModItemStats Stat)
+        public ModItem(ItemIndex Index)
         {
-            ModItemStats buffer = Item.m_StatList.Find(x => x.Stat == Stat.Stat);
-            if (buffer != null)
+            this.m_Index = Index;
+            m_StatList = new List<ModItemStat>();
+        }
+
+        public ModItem(ItemIndex Index,List<ModItemStat> Stats)
+        {
+            this.m_Index = Index;
+            m_StatList = Stats;
+        }
+
+        public ModItem(ItemIndex Index, ModItemStat Stat)
+        {
+            this.m_Index = Index;
+            m_StatList = new List<ModItemStat>
             {
-                buffer.fl
+                Stat
+            };
+        }
+        public ModItem(ItemIndex Index, ModItemStat Stat1, ModItemStat Stat2)
+        {
+            this.m_Index = Index;
+            m_StatList = new List<ModItemStat>
+            {
+                Stat1,
+                Stat2
+            };
+        }
+        public ModItem(ItemIndex Index, ModItemStat Stat1, ModItemStat Stat2, ModItemStat Stat3)
+        {
+            this.m_Index = Index;
+            m_StatList = new List<ModItemStat>
+            {
+                Stat1,
+                Stat2,
+                Stat3
+            };
+        }
+        public ModItem(ItemIndex Index, ModItemStat Stat1, ModItemStat Stat2, ModItemStat Stat3, ModItemStat Stat4)
+        {
+            this.m_Index = Index;
+            m_StatList = new List<ModItemStat>
+            {
+                Stat1,
+                Stat2,
+                Stat3,
+                Stat4
+            };
+        }
+
+        #region Operator
+        public static ModItem operator +(ModItem Item, ModItemStat Stat)
+        {
+            if (Item.m_StatList.Exists(x => x.Stat == Stat.Stat))
+            {
+                Item.m_StatList[Item.m_StatList.FindIndex(x => x.Stat == Stat.Stat)] += Stat;
             }
             return Item;
         }
-        */
+        public static ModItem operator +(ModItem Item, List<ModItemStat> Stats)
+        {
+            foreach(ModItemStat Stat in Stats)
+                if (Item.m_StatList.Exists(x => x.Stat == Stat.Stat))
+                {
+                    Item.m_StatList[Item.m_StatList.FindIndex(x => x.Stat == Stat.Stat)] += Stat;
+                }
+            return Item;
+        }
+
+        public static ModItem operator -(ModItem Item, ModItemStat Stat)
+        {
+            if (Item.m_StatList.Exists(x => x.Stat == Stat.Stat))
+            {
+                Item.m_StatList[Item.m_StatList.FindIndex(x => x.Stat == Stat.Stat)] -= Stat;
+            }
+            return Item;
+        }
+        #endregion
+    }
+
+    static public class ModItemManager
+    {
+        static public Dictionary<ItemIndex, ModItem> ModItemDictionary = new Dictionary<ItemIndex, ModItem>();
+
+        static public void AddModItem(ItemIndex index, ModItem ModItem)
+        {
+            if (!ModItemDictionary.ContainsKey(index))
+            {
+                ModItemDictionary.Add(index, ModItem);
+            }
+            else
+            {
+                ModItemDictionary[index] += ModItem.GetStatsList;
+            }
+
+        }
+        static public void AddStatToItem(ItemIndex index, ModItemStat stat)
+        {
+            if (ModItemDictionary.ContainsKey(index))
+            {
+                ModItemDictionary[index] += stat;
+            }
+            else
+            {
+                throw new Exception("ModItemManager ERROR : ItemIndex does not exist in ModItemDictionary");
+            }
+        }
+        static public void AddStatToItem(ItemIndex index, List<ModItemStat> stats)
+        {
+            if (ModItemDictionary.ContainsKey(index))
+            {
+                ModItemDictionary[index] += stats;
+            }
+            else
+            {
+                throw new Exception("ModItemManager ERROR : ItemIndex does not exist in ModItemDictionary");
+            }
+        }
+
+        static public ModItem GetModItem(ItemIndex index)
+        {
+            if (ModItemDictionary.ContainsKey(index))
+            {
+                return ModItemDictionary[index];
+            }
+            else
+            {
+                throw new Exception("ModItemManager ERROR : ItemIndex does not exist in ModItemDictionary");
+            }
+        }
+
+        static public void Init()
+        {
+            foreach (ItemIndex itemIndex in (ItemIndex[])Enum.GetValues(typeof(ItemIndex)))
+            {
+                ModItemDictionary.Add(itemIndex, new ModItem(itemIndex));
+            }
+
+            AddStatToItem(ItemIndex.PersonalShield, new ModItemStat(25, StatIndex.MaxShield));
+
+        }
+
     }
 }
