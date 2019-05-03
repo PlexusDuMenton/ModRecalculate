@@ -166,13 +166,14 @@ namespace PlexusUtils
     public class ModItem
     {
         private ItemIndex m_Index;
-        
+        private List<ModHitEffect> m_EffectList;
 
         private List<ModItemStat> m_StatList;
 
 
         #region properties
         public List<ModItemStat> GetStatsList { get { return m_StatList; } }
+        public List<ModHitEffect> GetHitEffectList { get { return m_EffectList; } }
         public ItemIndex Index { get { return m_Index; } private set { m_Index = value; } }
 
         /// <summary>
@@ -304,6 +305,26 @@ namespace PlexusUtils
         }
 
         #region Operator
+
+        public static ModItem operator +(ModItem Item, ModHitEffect Effect)
+        {
+            if (!Item.m_EffectList.Exists(x => x.GetType() == Effect.GetType()))
+            {
+                Item.m_EffectList.Add(Effect);
+            }
+            return Item;
+        }
+        public static ModItem operator +(ModItem Item, List<ModHitEffect> Effects)
+        {
+            foreach (ModHitEffect Effect in Effects)
+                if (!Item.m_EffectList.Exists(x => x.GetType() == Effect.GetType()))
+                {
+                    Item.m_EffectList.Add(Effect);
+                }
+            return Item;
+        }
+
+
         public static ModItem operator +(ModItem Item, ModItemStat Stat)
         {
             if (Item.m_StatList.Exists(x => x.Stat == Stat.Stat))
@@ -340,9 +361,70 @@ namespace PlexusUtils
         #endregion
     }
 
+    public class ModHitEffect
+    {
+        /// <summary>
+        /// Check if the effect is Proc or not
+        /// </summary>
+        /// <param name="globalEventManager"></param>
+        /// <param name="damageInfo"></param>
+        /// <param name="victim"></param>
+        /// <returns></returns>
+        virtual public bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        {
+            return true;
+        }
+        virtual public void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        {
+
+        }
+
+        public void OnHit(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        {
+            if (Condition(globalEventManager, damageInfo, victim))
+                Effect(globalEventManager, damageInfo, victim);
+        }
+    }
+
+
     static public class ModItemManager
     {
         static public Dictionary<ItemIndex, ModItem> ModItemDictionary;
+
+        static private Dictionary<ItemIndex, ModItem> m_DefaultModItemDictionary;
+         
+        static public Dictionary<ItemIndex, ModItem> DefaultModItemDictionary { get { return m_DefaultModItemDictionary; } }
+
+        static private void DefaultStatItem(ItemIndex index, ModItemStat stat)
+        {
+            if (m_DefaultModItemDictionary.ContainsKey(index))
+            {
+                m_DefaultModItemDictionary[index] += stat;
+            }
+            else
+            {
+                throw new Exception("ModItemManager ERROR : ItemIndex does not exist in ModItemDictionary");
+            }
+        }
+
+        public static void AddOnHitEffect(ItemIndex index, ModHitEffect HitEffect)
+        {
+            if (ModItemDictionary.ContainsKey(index))
+            {
+                ModItemDictionary[index] += HitEffect;
+
+                throw new Exception("ModItemManager ERROR : ItemIndex does not exist in ModItemDictionary");
+            }
+        }
+        public static void AddOnHitEffect(ItemIndex index, List<ModHitEffect> HitEffects)
+        {
+            if (ModItemDictionary.ContainsKey(index))
+            {
+                ModItemDictionary[index] += HitEffects;
+
+                throw new Exception("ModItemManager ERROR : ItemIndex does not exist in ModItemDictionary");
+            }
+        }
 
         static public void AddModItem(ItemIndex index, ModItem ModItem)
         {
@@ -391,10 +473,47 @@ namespace PlexusUtils
             }
         }
 
+        static public void Init()
+        {
+            m_DefaultModItemDictionary = new Dictionary<ItemIndex, ModItem>();
+
+            DefaultStatItem(ItemIndex.Knurl, new ModItemStat(40, StatIndex.MaxHealth));
+            DefaultStatItem(ItemIndex.BoostHp, new ModItemStat(0, 0, 0.1f, StatIndex.MaxHealth));
+
+            DefaultStatItem(ItemIndex.PersonalShield, new ModItemStat(25, StatIndex.MaxShield));
+
+            DefaultStatItem(ItemIndex.HealWhileSafe, new ModItemStat(0, 0, 2.5f, 1.5f, StatIndex.SafeRegen));
+            DefaultStatItem(ItemIndex.Knurl, new ModItemStat(1.6f, StatIndex.Regen));
+            DefaultStatItem(ItemIndex.HealthDecay, new ModItemStat(0, 0, -0.1f, StatIndex.Regen));
+
+            DefaultStatItem(ItemIndex.SprintOutOfCombat, new ModItemStat(0, 0, 0.3f, StatIndex.SafeRunningMoveSpeed));
+            DefaultStatItem(ItemIndex.Hoof, new ModItemStat(0, 0, 0.14f, StatIndex.MoveSpeed));
+            DefaultStatItem(ItemIndex.SprintBonus, new ModItemStat(0, 0, 0.3f, 0.2f, StatIndex.RunningMoveSpeed));
+
+            DefaultStatItem(ItemIndex.Feather, new ModItemStat(1, StatIndex.JumpCount));
+
+            DefaultStatItem(ItemIndex.BoostDamage, new ModItemStat(0, 0, 0.1f, StatIndex.Damage));
+            DefaultStatItem(ItemIndex.Syringe, new ModItemStat(0, 0, 0.15f, StatIndex.AttackSpeed));
+
+            DefaultStatItem(ItemIndex.CritGlasses, new ModItemStat(10, StatIndex.Crit));
+            DefaultStatItem(ItemIndex.AttackSpeedOnCrit, new ModItemStat(5, 0, StatIndex.Crit));
+            DefaultStatItem(ItemIndex.CritHeal, new ModItemStat(5, 0, StatIndex.Crit));
+            DefaultStatItem(ItemIndex.HealOnCrit, new ModItemStat(5, 0, StatIndex.Crit));
+            DefaultStatItem(ItemIndex.CooldownOnCrit, new ModItemStat(5, 0, StatIndex.Crit));
+
+            DefaultStatItem(ItemIndex.SprintArmor, new ModItemStat(30, StatIndex.RunningArmor));
+            DefaultStatItem(ItemIndex.DrizzlePlayerHelper, new ModItemStat(70, StatIndex.Armor));
+
+            DefaultStatItem(ItemIndex.AlienHead, new ModItemStat(0, 0, 0.75f, StatIndex.GlobalCoolDown));
+
+            DefaultStatItem(ItemIndex.UtilitySkillMagazine, new ModItemStat(0, 0, 2f / 3f, 1, StatIndex.CoolDownUtility));
+            DefaultStatItem(ItemIndex.SecondarySkillMagazine, new ModItemStat(1, StatIndex.CountSecondary));
+            DefaultStatItem(ItemIndex.UtilitySkillMagazine, new ModItemStat(2, StatIndex.CountUtility));
+        }
+
         static public void Update()
         {
-
-
+            
             ModItemDictionary = new Dictionary<ItemIndex, ModItem>();
             foreach (ItemIndex itemIndex in (ItemIndex[])Enum.GetValues(typeof(ItemIndex)))
             {

@@ -7,7 +7,7 @@ Create a list of hook to add/remove stats, and ItemSpecific hook, even PostRecal
 
 
 
-###Developer Info
+### Developer Info
 	Plugin ID : com.Plexus.ModRecalculate
 
 	CharacterDefault*** : Before Item are apllied
@@ -88,7 +88,7 @@ Create a list of hook to add/remove stats, and ItemSpecific hook, even PostRecal
 
 
 
-###Changelog
+### Changelog
 0.4.0 : 
 Added the ModItem and ModItemManager to add any stats to any items
 Stats are limited to DirectItem effect, so buff like banner don't work

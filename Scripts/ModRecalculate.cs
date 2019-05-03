@@ -143,9 +143,7 @@ using UnityEngine.UI;
 
 namespace PlexusUtils
 {
-
-    [BepInDependency("com.bepis.r2api")]
-    [BepInPlugin("com.Plexus.ModRecalculate", "ModRecalculate", "0.4.0")]
+    [BepInPlugin(ModRecalculate.Dependency, "ModRecalculate", ModRecalculate.Version)]
 
     public class PlexusUtils : BaseUnityPlugin
     {
@@ -171,9 +169,12 @@ namespace PlexusUtils
     static public class ModRecalculate
     {
 
+        public const string Dependency = "com.Plexus.ModRecalculate";
+        public const string Version = "0.5.0";
+
         #region Hook
 
-        static event Hook_floatHook bufferHook;
+        static event Hook_floatHook BufferHook;
 
 
         /// <summary>
@@ -190,16 +191,16 @@ namespace PlexusUtils
                 {
                     if (DelegateList.Length > 1)
                     {
-                        bufferHook = Delegate.CreateDelegate(typeof(Hook_floatHook), DelegateList[1].Target, DelegateList[1].Method.Name) as Hook_floatHook;
+                        BufferHook = Delegate.CreateDelegate(typeof(Hook_floatHook), DelegateList[1].Target, DelegateList[1].Method.Name) as Hook_floatHook;
                     }
 
 
                     for (int i = 2; i < DelegateList.Length; i++)
                     {
-                        bufferHook += Delegate.CreateDelegate(typeof(Hook_floatHook), DelegateList[i].Target, DelegateList[i].Method.Name) as Hook_floatHook;
+                        BufferHook += Delegate.CreateDelegate(typeof(Hook_floatHook), DelegateList[i].Target, DelegateList[i].Method.Name) as Hook_floatHook;
                     }
 
-                    f.SetValue(null, bufferHook);
+                    f.SetValue(null, BufferHook);
                     typeof(ModRecalculate).GetField(HookName + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).SetValue(null, OverideState.Open);
                 }
                 else
@@ -650,7 +651,7 @@ namespace PlexusUtils
         //Used to add the defaults Hook
         static public void Init()
         {
-
+            ModItemManager.Init();
             ModifyItem = Base_ModifyItem;
 
             //Health
