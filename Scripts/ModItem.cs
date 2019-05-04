@@ -391,9 +391,20 @@ namespace PlexusUtils
     {
         static public Dictionary<ItemIndex, ModItem> ModItemDictionary;
 
+        
         static private Dictionary<ItemIndex, ModItem> m_DefaultModItemDictionary;
          
         static public Dictionary<ItemIndex, ModItem> DefaultModItemDictionary { get { return m_DefaultModItemDictionary; } }
+
+        static private void DefaultOnHitEffect(ItemIndex index, ModHitEffect HitEffect)
+        {
+            if (m_DefaultModItemDictionary.ContainsKey(index))
+            {
+                m_DefaultModItemDictionary[index] += HitEffect;
+
+                throw new Exception("ModItemManager ERROR : ItemIndex does not exist in m_DefaultModItemDictionary\nBtw you shouldn't mess with this boi !");
+            }
+        }
 
         static private void DefaultStatItem(ItemIndex index, ModItemStat stat)
         {
@@ -403,7 +414,7 @@ namespace PlexusUtils
             }
             else
             {
-                throw new Exception("ModItemManager ERROR : ItemIndex does not exist in ModItemDictionary");
+                throw new Exception("ModItemManager ERROR : ItemIndex does not exist in m_DefaultModItemDictionary\nBtw you shouldn't mess with this boi !");
             }
         }
 
@@ -477,35 +488,42 @@ namespace PlexusUtils
         {
             m_DefaultModItemDictionary = new Dictionary<ItemIndex, ModItem>();
 
+            //Default On Hit Effect
+            DefaultOnHitEffect(ItemIndex.HealOnCrit, new HealOnCritHitReplace());
+            DefaultOnHitEffect(ItemIndex.CooldownOnCrit, new CoolDownOnCritHitReplace());
+            DefaultOnHitEffect(ItemIndex.AttackSpeedOnCrit, new AttackSpeedOnCritHitReplace());
+            DefaultOnHitEffect(ItemIndex.Seed, new HealOnHitReplace());
+            DefaultOnHitEffect(ItemIndex.BleedOnHit, new BleedOnHitReplace());
+            DefaultOnHitEffect(ItemIndex.SlowOnHit, new SlowOnHitReplace());
+            DefaultOnHitEffect(ItemIndex.GoldOnHit, new GoldOnHitReplace());
+            DefaultOnHitEffect(ItemIndex.Missile, new MissileOnHitReplace());
+            DefaultOnHitEffect(ItemIndex.ChainLightning, new UkeleleOnHitReplace());
+            DefaultOnHitEffect(ItemIndex.BounceNearby, new HookEffectReplace());
+            DefaultOnHitEffect(ItemIndex.StickyBomb, new StickyBombOnHitReplace());
+            DefaultOnHitEffect(ItemIndex.IceRing, new IceRingEffectReplace());
+            DefaultOnHitEffect(ItemIndex.FireRing, new FireRingEffectReplace());
+
+            //Default Stats
             DefaultStatItem(ItemIndex.Knurl, new ModItemStat(40, StatIndex.MaxHealth));
             DefaultStatItem(ItemIndex.BoostHp, new ModItemStat(0, 0, 0.1f, StatIndex.MaxHealth));
-
             DefaultStatItem(ItemIndex.PersonalShield, new ModItemStat(25, StatIndex.MaxShield));
-
             DefaultStatItem(ItemIndex.HealWhileSafe, new ModItemStat(0, 0, 2.5f, 1.5f, StatIndex.SafeRegen));
             DefaultStatItem(ItemIndex.Knurl, new ModItemStat(1.6f, StatIndex.Regen));
             DefaultStatItem(ItemIndex.HealthDecay, new ModItemStat(0, 0, -0.1f, StatIndex.Regen));
-
             DefaultStatItem(ItemIndex.SprintOutOfCombat, new ModItemStat(0, 0, 0.3f, StatIndex.SafeRunningMoveSpeed));
             DefaultStatItem(ItemIndex.Hoof, new ModItemStat(0, 0, 0.14f, StatIndex.MoveSpeed));
             DefaultStatItem(ItemIndex.SprintBonus, new ModItemStat(0, 0, 0.3f, 0.2f, StatIndex.RunningMoveSpeed));
-
             DefaultStatItem(ItemIndex.Feather, new ModItemStat(1, StatIndex.JumpCount));
-
             DefaultStatItem(ItemIndex.BoostDamage, new ModItemStat(0, 0, 0.1f, StatIndex.Damage));
             DefaultStatItem(ItemIndex.Syringe, new ModItemStat(0, 0, 0.15f, StatIndex.AttackSpeed));
-
             DefaultStatItem(ItemIndex.CritGlasses, new ModItemStat(10, StatIndex.Crit));
             DefaultStatItem(ItemIndex.AttackSpeedOnCrit, new ModItemStat(5, 0, StatIndex.Crit));
             DefaultStatItem(ItemIndex.CritHeal, new ModItemStat(5, 0, StatIndex.Crit));
             DefaultStatItem(ItemIndex.HealOnCrit, new ModItemStat(5, 0, StatIndex.Crit));
             DefaultStatItem(ItemIndex.CooldownOnCrit, new ModItemStat(5, 0, StatIndex.Crit));
-
             DefaultStatItem(ItemIndex.SprintArmor, new ModItemStat(30, StatIndex.RunningArmor));
             DefaultStatItem(ItemIndex.DrizzlePlayerHelper, new ModItemStat(70, StatIndex.Armor));
-
             DefaultStatItem(ItemIndex.AlienHead, new ModItemStat(0, 0, 0.75f, StatIndex.GlobalCoolDown));
-
             DefaultStatItem(ItemIndex.UtilitySkillMagazine, new ModItemStat(0, 0, 2f / 3f, 1, StatIndex.CoolDownUtility));
             DefaultStatItem(ItemIndex.SecondarySkillMagazine, new ModItemStat(1, StatIndex.CountSecondary));
             DefaultStatItem(ItemIndex.UtilitySkillMagazine, new ModItemStat(2, StatIndex.CountUtility));
@@ -521,6 +539,20 @@ namespace PlexusUtils
                     ModItemDictionary.Add(itemIndex, new ModItem(itemIndex));
             }
             //Fun Start here
+
+            AddOnHitEffect(ItemIndex.HealOnCrit, new HealOnCritHitReplace());
+            AddOnHitEffect(ItemIndex.CooldownOnCrit, new CoolDownOnCritHitReplace());
+            AddOnHitEffect(ItemIndex.AttackSpeedOnCrit, new AttackSpeedOnCritHitReplace());
+            AddOnHitEffect(ItemIndex.Seed, new HealOnHitReplace());
+            AddOnHitEffect(ItemIndex.BleedOnHit, new BleedOnHitReplace());
+            AddOnHitEffect(ItemIndex.SlowOnHit, new SlowOnHitReplace());
+            AddOnHitEffect(ItemIndex.GoldOnHit, new GoldOnHitReplace());
+            AddOnHitEffect(ItemIndex.Missile, new MissileOnHitReplace());
+            AddOnHitEffect(ItemIndex.ChainLightning, new UkeleleOnHitReplace());
+            AddOnHitEffect(ItemIndex.BounceNearby, new HookEffectReplace());
+            AddOnHitEffect(ItemIndex.StickyBomb, new StickyBombOnHitReplace());
+            AddOnHitEffect(ItemIndex.IceRing, new IceRingEffectReplace());
+            AddOnHitEffect(ItemIndex.FireRing, new FireRingEffectReplace());
 
             AddStatToItem(ItemIndex.Knurl, new ModItemStat(40, StatIndex.MaxHealth));
             AddStatToItem(ItemIndex.BoostHp, new ModItemStat(0, 0, 0.1f, StatIndex.MaxHealth));
@@ -597,6 +629,31 @@ namespace PlexusUtils
                 }
             }
             return value;
+        }
+
+        static public void ExecuteOrderSixtySix(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        {
+            float procCoefficient = damageInfo.procCoefficient;
+            CharacterBody body = damageInfo.attacker.GetComponent<CharacterBody>();
+            CharacterMaster master = body.master;
+            if (!(bool)body || procCoefficient <= 0.0 || !(bool)body || !(bool)master || !(bool)master.inventory)
+                return;
+
+            Inventory inventory = master.inventory;
+
+            foreach (KeyValuePair<ItemIndex,ModItem> Kv in ModItemDictionary)
+            {
+                if (inventory.GetItemCount(Kv.Key) > 0)
+                {
+                    foreach(ModHitEffect HitEffects in Kv.Value.GetHitEffectList)
+                    {
+                        if (HitEffects.Condition(globalEventManager, damageInfo, victim))
+                        {
+                            HitEffects.Effect(globalEventManager, damageInfo, victim);
+                        }
+                    }
+                }
+            }
         }
 
     }

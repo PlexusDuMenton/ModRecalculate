@@ -728,7 +728,7 @@ namespace PlexusUtils
             On.RoR2.CharacterBody.RecalculateStats += ModdedRecalculate;
         }
 
-
+        #region BaseHook
         //HEALTH FUNCTIONS
         static public float Base_CharacterDefaultHealth(CharacterBody character)
         {
@@ -1258,6 +1258,8 @@ namespace PlexusUtils
             return count;
         }
 #pragma warning restore CS0618 // Disable Obsolete warning
+
+        #endregion
         static public void ModdedRecalculate(On.RoR2.CharacterBody.orig_RecalculateStats orig, CharacterBody character)
         {
             
