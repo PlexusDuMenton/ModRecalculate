@@ -24,7 +24,7 @@ Create a list of hook to add/remove stats, and ItemSpecific hook, even PostRecal
 		
 		To Create effect, Create a child class of ModHitEffect and in Modify item do : 
 		AddOnHitEffect(YOURITEMINDEX, new YOURCHILDCLASS());
-		for example use "OnHitEnemyReplacement.cs" file, it contain all default rewriten effects
+		for example use "OnHitAll.cs" file, it contain all default rewriten effect
 
 	LIST (IN ORDER OF CALL) :
 	
@@ -91,6 +91,9 @@ Create a list of hook to add/remove stats, and ItemSpecific hook, even PostRecal
 
 
 ### Changelog
+0.5.1
+Added OnHitAll effects (a variable to change in the Child of ModHitEffect)
+
 0.5.0
 Added OnHitEnemy Effect customization
 Added access to default item Stats and Effect using DefaultModItemDictionary
