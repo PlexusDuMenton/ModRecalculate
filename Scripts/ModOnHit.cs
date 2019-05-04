@@ -46,7 +46,7 @@ namespace PlexusUtils
 
             Vector3 aimOrigin = Attacker.aimOrigin;
 
-            ModItemManager.ExecuteOrderSixtySix(self, damageInfo, victim);
+            ModItemManager.OnHitEnemyEffects(self, damageInfo, victim);
 
 
             //SetOnFire . Can't realy do much for this one 
@@ -62,12 +62,45 @@ namespace PlexusUtils
 
             damageInfo.procChainMask.UnlinkToManager();
         }
+        static public void ModdedHitAll(On.RoR2.GlobalEventManager.orig_OnHitAll orig, GlobalEventManager self, DamageInfo damageInfo, GameObject victim)
+        {
 
-        
+            if ((double)damageInfo.procCoefficient == 0.0)
+                return;
+            int Host = NetworkServer.active ? 1 : 0;
+            if (!(bool)((UnityEngine.Object)damageInfo.attacker))
+                return;
+            CharacterBody component = damageInfo.attacker.GetComponent<CharacterBody>();
+            if (!(bool)((UnityEngine.Object)component))
+                return;
+            CharacterMaster master = component.master;
+            if (!(bool)((UnityEngine.Object)master))
+                return;
+            Inventory inventory = master.inventory;
+            if (!(bool)((UnityEngine.Object)master.inventory))
+                return;
+            damageInfo.procChainMask.LinkToManager();
+
+
+            ModItemManager.OnHitAllEffects(self, damageInfo, victim);
+
+            //Buff
+            if ((component.HasBuff(BuffIndex.AffixBlue) ? 1 : 0) <= 0)
+                return;
+            float damage = damageInfo.damage * 0.5f;
+            float force = 0.0f;
+            Vector3 position = damageInfo.position;
+            #pragma warning disable CS0618 //Obsolete warning
+            ProjectileManager.instance.FireProjectile(Resources.Load<GameObject>("Prefabs/Projectiles/LightningStake"), position, Quaternion.identity, damageInfo.attacker, damage, force, damageInfo.crit, DamageColorIndex.Item, (GameObject)null, -1f);
+            #pragma warning restore CS0618 
+
+            damageInfo.procChainMask.UnlinkToManager();
+        }
 
         static public void Init()
         {
             On.RoR2.GlobalEventManager.OnHitEnemy += ModdedHitEnemy;
+            On.RoR2.GlobalEventManager.OnHitAll += ModdedHitAll;
         }
     }
 }

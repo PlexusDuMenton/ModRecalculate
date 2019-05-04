@@ -173,7 +173,7 @@ namespace PlexusUtils
     {
 
         public const string Dependency = "com.Plexus.ModRecalculate";
-        public const string Version = "0.5.0";
+        public const string Version = "0.5.1";
 
         #region Hook
 

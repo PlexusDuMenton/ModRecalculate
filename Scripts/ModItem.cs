@@ -8,6 +8,11 @@ using System.Collections.Generic;
 
 namespace PlexusUtils
 {
+    public enum HitEffectType
+    {
+        OnHitEnemy = 0,
+        OnHitAll = 1
+    }
     public enum StatIndex
     {
         MaxHealth,
@@ -369,6 +374,8 @@ namespace PlexusUtils
 
     public class ModHitEffect
     {
+
+        public HitEffectType EffectType = HitEffectType.OnHitEnemy;
         /// <summary>
         /// Check if the effect is Proc or not
         /// </summary>
@@ -517,6 +524,7 @@ namespace PlexusUtils
             DefaultOnHitEffect(ItemIndex.StickyBomb, new StickyBombOnHitReplace());
             DefaultOnHitEffect(ItemIndex.IceRing, new IceRingEffectReplace());
             DefaultOnHitEffect(ItemIndex.FireRing, new FireRingEffectReplace());
+            DefaultOnHitEffect(ItemIndex.Behemoth, new BehemotEffectReplace());
 
             //Default Stats
             DefaultStatItem(ItemIndex.Knurl, new ModItemStat(40, StatIndex.MaxHealth));
@@ -567,6 +575,10 @@ namespace PlexusUtils
             AddOnHitEffect(ItemIndex.StickyBomb, new StickyBombOnHitReplace());
             AddOnHitEffect(ItemIndex.IceRing, new IceRingEffectReplace());
             AddOnHitEffect(ItemIndex.FireRing, new FireRingEffectReplace());
+
+            AddOnHitEffect(ItemIndex.Behemoth, new BehemotEffectReplace());
+            AddOnHitEffect(ItemIndex.Feather, new BehemotEffectReplace());
+
 
             AddStatToItem(ItemIndex.Knurl, new ModItemStat(40, StatIndex.MaxHealth));
             AddStatToItem(ItemIndex.BoostHp, new ModItemStat(0, 0, 0.1f, StatIndex.MaxHealth));
@@ -645,7 +657,7 @@ namespace PlexusUtils
             return value;
         }
 
-        static public void ExecuteOrderSixtySix(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        static public void OnHitEnemyEffects(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
         {
             float procCoefficient = damageInfo.procCoefficient;
             CharacterBody body = damageInfo.attacker.GetComponent<CharacterBody>();
@@ -662,7 +674,35 @@ namespace PlexusUtils
                 {
                     foreach(ModHitEffect HitEffects in Kv.Value.GetHitEffectList)
                     {
-                        if (HitEffects.Condition(globalEventManager, damageInfo, victim, count))
+                        
+                        if (HitEffects.EffectType == HitEffectType.OnHitEnemy && HitEffects.Condition(globalEventManager, damageInfo, victim, count))
+                        {
+                            HitEffects.Effect(globalEventManager, damageInfo, victim, count);
+                        }
+                    }
+                }
+            }
+        }
+
+        static public void OnHitAllEffects(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        {
+            float procCoefficient = damageInfo.procCoefficient;
+            CharacterBody body = damageInfo.attacker.GetComponent<CharacterBody>();
+            CharacterMaster master = body.master;
+            if (!(bool)body || procCoefficient <= 0.0 || !(bool)body || !(bool)master || !(bool)master.inventory)
+                return;
+
+            Inventory inventory = master.inventory;
+
+            foreach (KeyValuePair<ItemIndex, ModItem> Kv in ModItemDictionary)
+            {
+                int count = inventory.GetItemCount(Kv.Key);
+                if (count > 0)
+                {
+                    foreach (ModHitEffect HitEffects in Kv.Value.GetHitEffectList)
+                    {
+
+                        if (HitEffects.EffectType == HitEffectType.OnHitAll && HitEffects.Condition(globalEventManager, damageInfo, victim, count))
                         {
                             HitEffects.Effect(globalEventManager, damageInfo, victim, count);
                         }

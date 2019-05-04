@@ -518,8 +518,58 @@ namespace PlexusUtils
         }
     }
 
+
+    class BehemotEffectReplace : ModHitEffect
+    {
+        new public HitEffectType EffectType = HitEffectType.OnHitAll;
+
+        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim,int itemCount)
+        {
+            return damageInfo.procCoefficient != 0.0 && !damageInfo.procChainMask.GetProcValue(ProcType.Behemoth);
+        }
+
+        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim,int itemCount)
+        {
+            CharacterBody body = damageInfo.attacker.GetComponent<CharacterBody>();
+            CharacterBody Attacker = damageInfo.attacker.GetComponent<CharacterBody>();
+            CharacterBody characterBody = victim ? victim.GetComponent<CharacterBody>() : null;
+            CharacterMaster master = Attacker.master;
+            Inventory inventory = master.inventory;
+            CharacterBody component = damageInfo.attacker.GetComponent<CharacterBody>();
+
+
+            float ExplosionRadius = (float)(1.5 + 2.5 * itemCount) * damageInfo.procCoefficient;
+            float damageCoefficient = 0.6f;
+            float Damage = Util.OnHitProcDamage(damageInfo.damage, component.damage, damageCoefficient);
+            EffectManager.instance.SpawnEffect(Resources.Load<GameObject>("Prefabs/Effects/OmniEffect/OmniExplosionVFXQuick"), new EffectData()
+            {
+                origin = damageInfo.position,
+                scale = ExplosionRadius,
+                rotation = Util.QuaternionSafeLookRotation(damageInfo.force)
+            }, true);
+            BlastAttack blastAttack = new BlastAttack()
+            {
+                position = damageInfo.position,
+                baseDamage = Damage,
+                baseForce = 0.0f,
+                radius = ExplosionRadius,
+                attacker = damageInfo.attacker,
+                inflictor = null
+            };
+            blastAttack.teamIndex = TeamComponent.GetObjectTeam(blastAttack.attacker);
+            blastAttack.crit = damageInfo.crit;
+            blastAttack.procChainMask = damageInfo.procChainMask;
+            blastAttack.procCoefficient = 0.0f;
+            blastAttack.damageColorIndex = DamageColorIndex.Item;
+            blastAttack.falloffModel = BlastAttack.FalloffModel.None;
+            blastAttack.damageType = damageInfo.damageType;
+            blastAttack.Fire();
+
+        }
+    }
+
     /*
-    class Replacer : ModHitEffect
+    class Effect : ModHitEffect
     {
         public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
         {
