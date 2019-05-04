@@ -22,7 +22,9 @@ Create a list of hook to add/remove stats, and ItemSpecific hook, even PostRecal
 		
 		To overide an existing hook (ignoring Original or Other hook) use the ResetHook(string HookName,bool TotalReset) function, please, only use it only when REALY needed, a hook can only be overided Once !
 		
-		
+		To Create effect, Create a child class of ModHitEffect and in Modify item do : 
+		AddOnHitEffect(YOURITEMINDEX, new YOURCHILDCLASS());
+		for example use "OnHitEnemyReplacement.cs" file, it contain all default rewriten effects
 
 	LIST (IN ORDER OF CALL) :
 	
@@ -89,6 +91,10 @@ Create a list of hook to add/remove stats, and ItemSpecific hook, even PostRecal
 
 
 ### Changelog
+0.5.0
+Added OnHitEnemy Effect customization
+Added access to default item Stats and Effect using DefaultModItemDictionary
+
 0.4.0 : 
 Added the ModItem and ModItemManager to add any stats to any items
 Stats are limited to DirectItem effect, so buff like banner don't work
