@@ -91,6 +91,9 @@ Create a list of hook to add/remove stats, and ItemSpecific hook, even PostRecal
 
 
 ### Changelog
+0.5.2 Fix additional skill stock bug
+fix NullReferenceException on ModRecalculate
+
 0.5.1
 Added OnHitAll effects (a variable to change in the Child of ModHitEffect)
 
