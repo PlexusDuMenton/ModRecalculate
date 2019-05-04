@@ -19,6 +19,9 @@ using UnityEngine.UI;
 
     To modify Items stats on character, use the ModifyHook with ModItemManager.AddStatToItem()
 
+    To Create effect, Create a child class of ModHitEffect and in Modify item do : 
+    AddOnHitEffect(YOURITEMINDEX, new YOURCHILDCLASS());
+    for example use "OnHitEnemyReplacement.cs" file, it contain all default rewriten effects
 
 
     Example Application : 
@@ -229,7 +232,7 @@ namespace PlexusUtils
                 if (e.GetInvocationList().Length > 1 && (int)typeof(ModRecalculate).GetField(c + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null) != (int)OverideState.Closed)
                 {
                     typeof(ModRecalculate).GetField(c + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).SetValue(null, (int)OverideState.Warned);
-                    Debug.LogError("Warning, There is Hook added but ingored since a mod decided to overide ALL HOOK on Hook : "+c);
+                    Debug.LogError("Warning, There is Hook added but ignored since a mod decided to overide ALL HOOK on Hook : "+c);
                 }
                 return (float)e.GetInvocationList()[0].DynamicInvoke(character);
             }
@@ -254,7 +257,7 @@ namespace PlexusUtils
                 if (e.GetInvocationList().Length > 1 && (int)typeof(ModRecalculate).GetField(c + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null) != (int)OverideState.Closed)
                 {
                     typeof(ModRecalculate).GetField(c + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).SetValue(null, (int)OverideState.Warned);
-                    Debug.LogError("Warning, There is Hook added but ingored since a mod decided to overide ALL HOOK on Hook : " + c);
+                    Debug.LogError("Warning, There is Hook added but ignored since a mod decided to overide ALL HOOK on Hook : " + c);
                 }
                 return value;
             }
@@ -652,6 +655,7 @@ namespace PlexusUtils
         static public void Init()
         {
             ModItemManager.Init();
+            ModOnHitEnemy.Init();
             ModifyItem = Base_ModifyItem;
 
             //Health

@@ -257,12 +257,14 @@ namespace PlexusUtils
         {
             this.m_Index = Index;
             m_StatList = new List<ModItemStat>();
+            m_EffectList = new List<ModHitEffect>();
         }
 
         public ModItem(ItemIndex Index,List<ModItemStat> Stats)
         {
             this.m_Index = Index;
             m_StatList = Stats;
+            m_EffectList = new List<ModHitEffect>();
         }
 
         public ModItem(ItemIndex Index, ModItemStat Stat)
@@ -272,6 +274,7 @@ namespace PlexusUtils
             {
                 Stat
             };
+            m_EffectList = new List<ModHitEffect>();
         }
         public ModItem(ItemIndex Index, ModItemStat Stat1, ModItemStat Stat2)
         {
@@ -281,6 +284,7 @@ namespace PlexusUtils
                 Stat1,
                 Stat2
             };
+            m_EffectList = new List<ModHitEffect>();
         }
         public ModItem(ItemIndex Index, ModItemStat Stat1, ModItemStat Stat2, ModItemStat Stat3)
         {
@@ -291,6 +295,7 @@ namespace PlexusUtils
                 Stat2,
                 Stat3
             };
+            m_EffectList = new List<ModHitEffect>();
         }
         public ModItem(ItemIndex Index, ModItemStat Stat1, ModItemStat Stat2, ModItemStat Stat3, ModItemStat Stat4)
         {
@@ -302,6 +307,7 @@ namespace PlexusUtils
                 Stat3,
                 Stat4
             };
+            m_EffectList = new List<ModHitEffect>();
         }
 
         #region Operator
@@ -369,20 +375,15 @@ namespace PlexusUtils
         /// <param name="globalEventManager"></param>
         /// <param name="damageInfo"></param>
         /// <param name="victim"></param>
+        /// <param name="itemCount"></param>
         /// <returns></returns>
-        virtual public bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        virtual public bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int itemCount)
         {
             return true;
         }
-        virtual public void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        virtual public void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int itemCount)
         {
 
-        }
-
-        public void OnHit(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
-        {
-            if (Condition(globalEventManager, damageInfo, victim))
-                Effect(globalEventManager, damageInfo, victim);
         }
     }
 
@@ -401,8 +402,9 @@ namespace PlexusUtils
             if (m_DefaultModItemDictionary.ContainsKey(index))
             {
                 m_DefaultModItemDictionary[index] += HitEffect;
-
-                throw new Exception("ModItemManager ERROR : ItemIndex does not exist in m_DefaultModItemDictionary\nBtw you shouldn't mess with this boi !");
+            }else
+            {
+                throw new Exception("ModItemManager ERROR : ItemIndex does not exist in m_DefaultModItemDictionary\nBtw you shouldn't mess with this boi !  Index :  " + index);
             }
         }
 
@@ -414,7 +416,7 @@ namespace PlexusUtils
             }
             else
             {
-                throw new Exception("ModItemManager ERROR : ItemIndex does not exist in m_DefaultModItemDictionary\nBtw you shouldn't mess with this boi !");
+                throw new Exception("ModItemManager ERROR : ItemIndex does not exist in m_DefaultModItemDictionary\nBtw you shouldn't mess with this boi !  Index :  " + index);
             }
         }
 
@@ -423,7 +425,9 @@ namespace PlexusUtils
             if (ModItemDictionary.ContainsKey(index))
             {
                 ModItemDictionary[index] += HitEffect;
-
+            }
+            else
+            {
                 throw new Exception("ModItemManager ERROR : ItemIndex does not exist in ModItemDictionary");
             }
         }
@@ -432,7 +436,9 @@ namespace PlexusUtils
             if (ModItemDictionary.ContainsKey(index))
             {
                 ModItemDictionary[index] += HitEffects;
-
+            }
+            else
+            {
                 throw new Exception("ModItemManager ERROR : ItemIndex does not exist in ModItemDictionary");
             }
         }
@@ -488,6 +494,15 @@ namespace PlexusUtils
         {
             m_DefaultModItemDictionary = new Dictionary<ItemIndex, ModItem>();
 
+            foreach (ItemIndex itemIndex in (ItemIndex[])Enum.GetValues(typeof(ItemIndex)))
+            {
+                if (itemIndex != ItemIndex.Count && itemIndex != ItemIndex.None)
+                {
+                    m_DefaultModItemDictionary.Add(itemIndex, new ModItem(itemIndex));
+                }
+                    
+            }
+
             //Default On Hit Effect
             DefaultOnHitEffect(ItemIndex.HealOnCrit, new HealOnCritHitReplace());
             DefaultOnHitEffect(ItemIndex.CooldownOnCrit, new CoolDownOnCritHitReplace());
@@ -538,7 +553,6 @@ namespace PlexusUtils
                 if (itemIndex != ItemIndex.Count && itemIndex != ItemIndex.None)
                     ModItemDictionary.Add(itemIndex, new ModItem(itemIndex));
             }
-            //Fun Start here
 
             AddOnHitEffect(ItemIndex.HealOnCrit, new HealOnCritHitReplace());
             AddOnHitEffect(ItemIndex.CooldownOnCrit, new CoolDownOnCritHitReplace());
@@ -643,13 +657,14 @@ namespace PlexusUtils
 
             foreach (KeyValuePair<ItemIndex,ModItem> Kv in ModItemDictionary)
             {
-                if (inventory.GetItemCount(Kv.Key) > 0)
+                int count = inventory.GetItemCount(Kv.Key);
+                if (count > 0)
                 {
                     foreach(ModHitEffect HitEffects in Kv.Value.GetHitEffectList)
                     {
-                        if (HitEffects.Condition(globalEventManager, damageInfo, victim))
+                        if (HitEffects.Condition(globalEventManager, damageInfo, victim, count))
                         {
-                            HitEffects.Effect(globalEventManager, damageInfo, victim);
+                            HitEffects.Effect(globalEventManager, damageInfo, victim, count);
                         }
                     }
                 }

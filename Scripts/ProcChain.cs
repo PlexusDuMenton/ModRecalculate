@@ -17,7 +17,7 @@ namespace PlexusUtils
 
     class ModProc
     {
-        public Dictionary<string, bool> ProcList;
+        public Dictionary<string, bool> ProcList = new Dictionary<string, bool>();
 
         public ModProc()
         {
@@ -69,7 +69,7 @@ namespace PlexusUtils
     class ModProcManager
     {
 
-        public static List<string> CustomProcList;
+        public static List<string> CustomProcList = new List<string>();
 
         /// <summary>
         /// Used to decalre new Proc Type in addition to existing one
@@ -87,7 +87,7 @@ namespace PlexusUtils
             }
         }
 
-        public static Dictionary<ProcChainMask, ModProc> ProcChainLinker;
+        public static Dictionary<ProcChainMask, ModProc> ProcChainLinker = new Dictionary<ProcChainMask, ModProc>();
 
         public static void SetProcValue(ProcChainMask chain, string ProcName, bool value)
         {

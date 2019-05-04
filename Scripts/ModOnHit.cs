@@ -15,12 +15,6 @@ using System.Collections.ObjectModel;
 namespace PlexusUtils
 {
 
-
-    
-
-
-    
-
     class ModOnHitEnemy
     {
         /// <summary>
@@ -32,6 +26,7 @@ namespace PlexusUtils
 
         static public void ModdedHitEnemy(On.RoR2.GlobalEventManager.orig_OnHitEnemy orig, GlobalEventManager self,DamageInfo damageInfo, GameObject victim)
         {
+
             if (damageInfo.procCoefficient == 0 || !NetworkServer.active || (!(bool)damageInfo.attacker || damageInfo.procCoefficient <= 0))
                 return;
 

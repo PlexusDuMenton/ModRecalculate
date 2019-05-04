@@ -16,13 +16,13 @@ namespace PlexusUtils
 {
     class HealOnCritHitReplace : ModHitEffect
     {
-        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim,int count)
         {
             ProcChainMask procChainMask = damageInfo.procChainMask;
             return damageInfo.crit && procChainMask.GetProcValue(ProcType.HealOnCrit);
         }
 
-        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int itemCount)
         {
             float procCoefficient = damageInfo.procCoefficient;
             CharacterBody body = damageInfo.attacker.GetComponent<CharacterBody>();
@@ -31,7 +31,6 @@ namespace PlexusUtils
             Inventory inventory = body.master.inventory;
 
             procChainMask.SetProcValue(ProcType.HealOnCrit, true);
-            int itemCount = inventory.GetItemCount(ItemIndex.HealOnCrit);
             if (itemCount > 0 && body.healthComponent)
             {
                 int ProcHealthSoundId = (int)Util.PlaySound("Play_item_proc_crit_heal", body.gameObject);
@@ -45,12 +44,12 @@ namespace PlexusUtils
 
     class AttackSpeedOnCritHitReplace : ModHitEffect
     {
-        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int count)
         {
             return damageInfo.crit;
         }
 
-        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int itemCount)
         {
             float procCoefficient = damageInfo.procCoefficient;
             CharacterBody body = damageInfo.attacker.GetComponent<CharacterBody>();
@@ -61,13 +60,13 @@ namespace PlexusUtils
 
     class CoolDownOnCritHitReplace : ModHitEffect
     {
-        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int count)
         {
             ProcChainMask procChainMask = damageInfo.procChainMask;
             return damageInfo.crit;
         }
 
-        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int itemCount)
         {
             float procCoefficient = damageInfo.procCoefficient;
             CharacterBody body = damageInfo.attacker.GetComponent<CharacterBody>();
@@ -96,19 +95,18 @@ namespace PlexusUtils
 
     class HealOnHitReplace : ModHitEffect
     {
-        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int count)
         {
             return !damageInfo.procChainMask.GetProcValue(ProcType.HealOnHit);
         }
 
-        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int itemCount)
         {
             CharacterBody body = damageInfo.attacker.GetComponent<CharacterBody>();
             CharacterBody Attacker = damageInfo.attacker.GetComponent<CharacterBody>();
 
             Inventory inventory = body.master.inventory;
 
-            int itemCount = inventory.GetItemCount(ItemIndex.Seed);
             if (itemCount > 0)
             {
                 HealthComponent AttackerHealthComponent = Attacker.GetComponent<HealthComponent>();
@@ -124,16 +122,15 @@ namespace PlexusUtils
 
     class StunOnHitReplace : ModHitEffect
     {
-        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int count)
         {
             CharacterBody body = damageInfo.attacker.GetComponent<CharacterBody>();
             Inventory inventory = body.master.inventory;
 
-            int StunChanceOnHit = inventory.GetItemCount(ItemIndex.StunChanceOnHit);
-            return StunChanceOnHit > 0 && Util.CheckRoll(1.0f - 1.0f / (damageInfo.procCoefficient * 0.05f * StunChanceOnHit + 1.0f) * 100f, body.master.GetComponent<CharacterMaster>());
+            return Util.CheckRoll(1.0f - 1.0f / (damageInfo.procCoefficient * 0.05f * count + 1.0f) * 100f, body.master.GetComponent<CharacterMaster>());
         }
 
-        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int itemCount)
         {
             SetStateOnHurt HurtStat = victim.GetComponent<SetStateOnHurt>();
             if (HurtStat)
@@ -143,37 +140,29 @@ namespace PlexusUtils
 
     class BleedOnHitReplace : ModHitEffect
     {
-        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
-        {
-            return !damageInfo.procChainMask.GetProcValue(ProcType.BleedOnHit);
-        }
-
-        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int count)
         {
             CharacterBody Attacker = damageInfo.attacker.GetComponent<CharacterBody>();
             CharacterMaster master = Attacker.master;
-            Inventory inventory = master.inventory;
+            return !damageInfo.procChainMask.GetProcValue(ProcType.BleedOnHit) && (damageInfo.damageType & DamageType.BleedOnHit) > 0U && Util.CheckRoll(15f * count * damageInfo.procCoefficient, master);
+        }
 
-            int BleedOnHitCount = inventory.GetItemCount(ItemIndex.BleedOnHit);
-            bool flag = (uint)(damageInfo.damageType & DamageType.BleedOnHit) > 0U;
-            if (BleedOnHitCount > 0 | flag && (flag || Util.CheckRoll(15f * BleedOnHitCount * damageInfo.procCoefficient, master)))
-            {
-                damageInfo.procChainMask.SetProcValue(ProcType.BleedOnHit, true);
-                DotController.InflictDot(victim, damageInfo.attacker, DotController.DotIndex.Bleed, 3f * damageInfo.procCoefficient, 1f);
-            }
-
+        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int itemCount)
+        {
+            damageInfo.procChainMask.SetProcValue(ProcType.BleedOnHit, true);
+            DotController.InflictDot(victim, damageInfo.attacker, DotController.DotIndex.Bleed, 3f * damageInfo.procCoefficient, 1f);
         }
     }
 
     class SlowOnHitReplace : ModHitEffect
     {
-        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int count)
         {
             CharacterBody characterBody = victim ? victim.GetComponent<CharacterBody>() : null;
             return characterBody;
         }
 
-        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int itemCount)
         {
             CharacterBody body = damageInfo.attacker.GetComponent<CharacterBody>();
             CharacterBody Attacker = damageInfo.attacker.GetComponent<CharacterBody>();
@@ -184,7 +173,7 @@ namespace PlexusUtils
             TeamIndex attackerTeamIndex = Team ? Team.teamIndex : TeamIndex.Neutral;
             Vector3 aimOrigin = Attacker.aimOrigin;
 
-            characterBody.AddTimedBuff(BuffIndex.Slow60, 1f * master.inventory.GetItemCount(ItemIndex.SlowOnHit));
+            characterBody.AddTimedBuff(BuffIndex.Slow60, 1f * itemCount);
 
 
         }
@@ -192,13 +181,13 @@ namespace PlexusUtils
 
     class GoldOnHitReplace : ModHitEffect
     {
-        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int count)
         {
             CharacterMaster master = damageInfo.attacker.GetComponent<CharacterBody>().master;
             return Util.CheckRoll(30f * damageInfo.procCoefficient, master);
         }
 
-        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int itemCount)
         {
             CharacterBody body = damageInfo.attacker.GetComponent<CharacterBody>();
             CharacterBody Attacker = damageInfo.attacker.GetComponent<CharacterBody>();
@@ -210,14 +199,14 @@ namespace PlexusUtils
             Vector3 aimOrigin = Attacker.aimOrigin;
 
 
-            master.GiveMoney((uint)(inventory.GetItemCount(ItemIndex.GoldOnHit) * 2.0 * Run.instance.difficultyCoefficient));
+            master.GiveMoney((uint)(itemCount * 2.0 * Run.instance.difficultyCoefficient));
             EffectManager.instance.SimpleImpactEffect(Resources.Load<GameObject>("Prefabs/Effects/ImpactEffects/CoinImpact"), damageInfo.position, Vector3.up, true);
         }
     }
 
     class MissileOnHitReplace : ModHitEffect
     {
-        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int count)
         {
             return !damageInfo.procChainMask.GetProcValue(ProcType.Missile);
         }
@@ -250,7 +239,7 @@ namespace PlexusUtils
             NetworkServer.Spawn(MissileGO);
         }
 
-        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int itemCount)
         {
             CharacterBody body = damageInfo.attacker.GetComponent<CharacterBody>();
             CharacterBody Attacker = damageInfo.attacker.GetComponent<CharacterBody>();
@@ -261,20 +250,20 @@ namespace PlexusUtils
             TeamIndex attackerTeamIndex = Team ? Team.teamIndex : TeamIndex.Neutral;
             Vector3 aimOrigin = Attacker.aimOrigin;
 
-            ProcMissile(inventory.GetItemCount(ItemIndex.Missile), Attacker, master, attackerTeamIndex, damageInfo.procChainMask, victim, damageInfo);
+            ProcMissile(itemCount, Attacker, master, attackerTeamIndex, damageInfo.procChainMask, victim, damageInfo);
 
         }
     }
 
     class UkeleleOnHitReplace : ModHitEffect
     {
-        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int count)
         {
             CharacterMaster master = damageInfo.attacker.GetComponent<CharacterBody>().master;
             return !damageInfo.procChainMask.HasProc(ProcType.ChainLightning) && Util.CheckRoll(25f * damageInfo.procCoefficient, master);
         }
 
-        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int itemCount)
         {
             CharacterBody body = damageInfo.attacker.GetComponent<CharacterBody>();
             CharacterBody Attacker = damageInfo.attacker.GetComponent<CharacterBody>();
@@ -285,7 +274,6 @@ namespace PlexusUtils
             TeamIndex attackerTeamIndex = Team ? Team.teamIndex : TeamIndex.Neutral;
             Vector3 aimOrigin = Attacker.aimOrigin;
 
-            int ItemCount = inventory.GetItemCount(ItemIndex.ChainLightning);
 
             float damageCoefficient = 0.8f;
             float Damage = Util.OnHitProcDamage(damageInfo.damage, Attacker.damage, damageCoefficient);
@@ -293,7 +281,7 @@ namespace PlexusUtils
             lightningOrb.origin = damageInfo.position;
             lightningOrb.damageValue = Damage;
             lightningOrb.isCrit = damageInfo.crit;
-            lightningOrb.bouncesRemaining = 2 * ItemCount;
+            lightningOrb.bouncesRemaining = 2 * itemCount;
             lightningOrb.teamIndex = attackerTeamIndex;
             lightningOrb.attacker = damageInfo.attacker;
             lightningOrb.bouncedObjects = new List<HealthComponent>()
@@ -305,7 +293,7 @@ namespace PlexusUtils
             lightningOrb.procCoefficient = 0.2f;
             lightningOrb.lightningType = LightningOrb.LightningType.Ukulele;
             lightningOrb.damageColorIndex = DamageColorIndex.Item;
-            lightningOrb.range += 2 * ItemCount;
+            lightningOrb.range += 2 * itemCount;
             HurtBox hurtBox = lightningOrb.PickNextTarget(damageInfo.position);
             if (hurtBox)
             {
@@ -317,17 +305,17 @@ namespace PlexusUtils
 
     class HookEffectReplace : ModHitEffect
     {
-        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int count)
         {
             CharacterBody Attacker = damageInfo.attacker.GetComponent<CharacterBody>();
             CharacterMaster master = Attacker.master;
             Inventory inventory = master.inventory;
 
-            float ProcChance = (float)((1.0 - 100.0 / (100.0 + 20.0 * inventory.GetItemCount(ItemIndex.BounceNearby))) * 100.0);
+            float ProcChance = (float)((1.0 - 100.0 / (100.0 + 20.0 * count)) * 100.0);
             return !damageInfo.procChainMask.HasProc(ProcType.BounceNearby) && Util.CheckRoll(ProcChance * damageInfo.procCoefficient, master);
         }
 
-        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int itemCount)
         {
             CharacterBody body = damageInfo.attacker.GetComponent<CharacterBody>();
             CharacterBody Attacker = damageInfo.attacker.GetComponent<CharacterBody>();
@@ -346,15 +334,17 @@ namespace PlexusUtils
                     };
             float damageCoefficient = 1f;
             float num3 = Util.OnHitProcDamage(damageInfo.damage, Attacker.damage, damageCoefficient);
-            for (int index = 0; index < 5 + inventory.GetItemCount(ItemIndex.BounceNearby) * 5; ++index)
+            for (int index = 0; index < 5 + itemCount * 5; ++index)
             {
-                BounceOrb bounceOrb = new BounceOrb();
-                bounceOrb.origin = damageInfo.position;
-                bounceOrb.damageValue = num3;
-                bounceOrb.isCrit = damageInfo.crit;
-                bounceOrb.teamIndex = attackerTeamIndex;
-                bounceOrb.attacker = damageInfo.attacker;
-                bounceOrb.procChainMask = damageInfo.procChainMask;
+                BounceOrb bounceOrb = new BounceOrb
+                {
+                    origin = damageInfo.position,
+                    damageValue = num3,
+                    isCrit = damageInfo.crit,
+                    teamIndex = attackerTeamIndex,
+                    attacker = damageInfo.attacker,
+                    procChainMask = damageInfo.procChainMask
+                };
                 bounceOrb.procChainMask.AddProc(ProcType.BounceNearby);
                 bounceOrb.procCoefficient = 0.33f;
                 bounceOrb.damageColorIndex = DamageColorIndex.Item;
@@ -363,7 +353,7 @@ namespace PlexusUtils
                 if ((bool)hurtBox)
                 {
                     bounceOrb.target = hurtBox;
-                    OrbManager.instance.AddOrb((Orb)bounceOrb);
+                    OrbManager.instance.AddOrb(bounceOrb);
                 }
             }
 
@@ -372,7 +362,7 @@ namespace PlexusUtils
 
     class StickyBombOnHitReplace : ModHitEffect
     {
-        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int count)
         {
             CharacterBody body = damageInfo.attacker.GetComponent<CharacterBody>();
             CharacterBody Attacker = damageInfo.attacker.GetComponent<CharacterBody>();
@@ -380,10 +370,10 @@ namespace PlexusUtils
             CharacterMaster master = Attacker.master;
             Inventory inventory = master.inventory;
 
-            return Util.CheckRoll((float)(2.5 + 2.5 * inventory.GetItemCount(ItemIndex.StickyBomb)) * damageInfo.procCoefficient, master) && characterBody;
+            return Util.CheckRoll((float)(2.5 + 2.5 * count) * damageInfo.procCoefficient, master) && characterBody;
         }
 
-        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int itemCount)
         {
             CharacterBody body = damageInfo.attacker.GetComponent<CharacterBody>();
             CharacterBody Attacker = damageInfo.attacker.GetComponent<CharacterBody>();
@@ -394,11 +384,10 @@ namespace PlexusUtils
             TeamIndex attackerTeamIndex = Team ? Team.teamIndex : TeamIndex.Neutral;
             Vector3 aimOrigin = Attacker.aimOrigin;
 
-
             Vector3 position = damageInfo.position;
             Vector3 forward = characterBody.corePosition - position;
             Quaternion rotation = forward.magnitude != 0.0 ? Util.QuaternionSafeLookRotation(forward) : UnityEngine.Random.rotationUniform;
-            float damageCoefficient = (float)(1.25 + 1.25 * inventory.GetItemCount(ItemIndex.StickyBomb));
+            float damageCoefficient = (float)(1.25 + 1.25 * itemCount);
             float damage = Util.OnHitProcDamage(damageInfo.damage, Attacker.damage, damageCoefficient);
 
             #pragma warning disable CS0618 // Obsolete Warning Ignore
@@ -410,7 +399,7 @@ namespace PlexusUtils
 
     class IceRingEffectReplace : ModHitEffect
     {
-        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int count)
         {
             CharacterBody Attacker = damageInfo.attacker.GetComponent<CharacterBody>();
             CharacterMaster master = Attacker.master;
@@ -428,7 +417,7 @@ namespace PlexusUtils
             return proc;
         }
 
-        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int itemCount)
         {
             CharacterBody body = damageInfo.attacker.GetComponent<CharacterBody>();
             CharacterBody Attacker = damageInfo.attacker.GetComponent<CharacterBody>();
@@ -443,7 +432,7 @@ namespace PlexusUtils
 
 
 
-            float damageCoefficient = (float)(1.25 + 1.25 * inventory.GetItemCount(ItemIndex.IceRing));
+            float damageCoefficient = (float)(1.25 + 1.25 * itemCount);
             float num3 = Util.OnHitProcDamage(damageInfo.damage, Attacker.damage, damageCoefficient);
             DamageInfo damageInfo1 = new DamageInfo()
             {
@@ -466,7 +455,7 @@ namespace PlexusUtils
 
     class FireRingEffectReplace : ModHitEffect
     {
-        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override bool Condition(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int count)
         {
             CharacterBody Attacker = damageInfo.attacker.GetComponent<CharacterBody>();
             CharacterMaster master = Attacker.master;
@@ -485,7 +474,7 @@ namespace PlexusUtils
             return proc;
         }
 
-        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim)
+        public override void Effect(GlobalEventManager globalEventManager, DamageInfo damageInfo, GameObject victim, int itemCount)
         {
             CharacterBody body = damageInfo.attacker.GetComponent<CharacterBody>();
             CharacterBody Attacker = damageInfo.attacker.GetComponent<CharacterBody>();
@@ -500,7 +489,7 @@ namespace PlexusUtils
             GameObject gameObject = Resources.Load<GameObject>("Prefabs/Projectiles/FireTornado");
             float resetInterval = gameObject.GetComponent<ProjectileOverlapAttack>().resetInterval;
             float lifetime = gameObject.GetComponent<ProjectileSimple>().lifetime;
-            float damageCoefficient1 = (float)(2.5 + 2.5 * (double)inventory.GetItemCount(ItemIndex.FireRing));
+            float damageCoefficient1 = (float)(2.5 + 2.5 * (double)itemCount);
             float DamageProjectile = Util.OnHitProcDamage(damageInfo.damage, Attacker.damage, damageCoefficient1) / lifetime * resetInterval;
             float ProjectileSpeed = 0.0f;
             Quaternion quaternion = Quaternion.identity;
