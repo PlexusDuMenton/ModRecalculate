@@ -239,6 +239,7 @@ namespace PlexusUtils
             else{
                 foreach (Delegate d in e.GetInvocationList())
                 {
+
                     value += (float)d.DynamicInvoke(character);
                 }
                 return value;
@@ -1234,7 +1235,7 @@ namespace PlexusUtils
             float count = 0;
             count += ModItemManager.GetBonusForStat(character, StatIndex.CountPrimary);
 
-            count *= ModItemManager.GetMultiplierForStat(character, StatIndex.CountPrimary);
+            count *= 1 + ModItemManager.GetMultiplierForStat(character, StatIndex.CountPrimary);
             return count;
         }
         static public float Base_SecondaryStackCount(CharacterBody character)
@@ -1242,7 +1243,7 @@ namespace PlexusUtils
             float count = 0;
             count += ModItemManager.GetBonusForStat(character, StatIndex.CountSecondary);
             count += character.inventory.GetItemCount(ItemIndex.SecondarySkillMagazine) * SecondarySkillMagazineCount;
-            count *= ModItemManager.GetMultiplierForStat(character, StatIndex.CountSecondary);
+            count *= 1 + ModItemManager.GetMultiplierForStat(character, StatIndex.CountSecondary);
             return count;
         }
         static public float Base_UtilityStackCount(CharacterBody character)
@@ -1250,7 +1251,7 @@ namespace PlexusUtils
             float count = 0;
             count += ModItemManager.GetBonusForStat(character, StatIndex.CountUtility);
             count += character.inventory.GetItemCount(ItemIndex.UtilitySkillMagazine) * UtilitySkillMagazineCount;
-            count *= ModItemManager.GetMultiplierForStat(character, StatIndex.CountUtility);
+            count *= 1 + ModItemManager.GetMultiplierForStat(character, StatIndex.CountUtility);
             return count;
         }
         static public float Base_SpecialStackCount(CharacterBody character)
@@ -1258,7 +1259,7 @@ namespace PlexusUtils
             float count = 0;
             count += ModItemManager.GetBonusForStat(character, StatIndex.CountSpecial);
 
-            count *= ModItemManager.GetMultiplierForStat(character, StatIndex.CountSpecial);
+            count *= 1 + ModItemManager.GetMultiplierForStat(character, StatIndex.CountSpecial);
             return count;
         }
 #pragma warning restore CS0618 // Disable Obsolete warning
