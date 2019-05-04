@@ -577,7 +577,7 @@ namespace PlexusUtils
             AddOnHitEffect(ItemIndex.FireRing, new FireRingEffectReplace());
 
             AddOnHitEffect(ItemIndex.Behemoth, new BehemotEffectReplace());
-            AddOnHitEffect(ItemIndex.Feather, new BehemotEffectReplace());
+
 
 
             AddStatToItem(ItemIndex.Knurl, new ModItemStat(40, StatIndex.MaxHealth));
