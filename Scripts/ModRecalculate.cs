@@ -756,32 +756,31 @@ namespace PlexusUtils
         static public float Base_RecalculateHealth(CharacterBody character)
         {
             //CharacterLinked Health Stats
+            
+            float MaxHealth = HookHandler("CharacterDefaultHealth",character);
+            float HealthBonusItem = 0;
+            float hpbooster = 0;
 
-            float MaxHealth = HookHandler("CharacterDefaultHealth", character);
-                float HealthBonusItem = 0;
-                float hpbooster = 0;
+            //Item Linked Bonus
+            if ((bool)character.inventory) { 
+                //Item Flat Bonus
+                HealthBonusItem += HookHandler("InfusionEffect", character);
+                HealthBonusItem += HookHandler("KnurlMaxHpEffect", character);
+                HealthBonusItem += ModItemManager.GetBonusForStat(character, StatIndex.MaxHealth);
 
-                //Item Linked Bonus
-                if ((bool)character.inventory) { 
-                    //Item Flat Bonus
-                    HealthBonusItem += HookHandler("InfusionEffect", character);
-                    HealthBonusItem += HookHandler("KnurlMaxHpEffect", character);
-                    HealthBonusItem += ModItemManager.GetBonusForStat(character, StatIndex.MaxHealth);
-
-                    //Item MultiplierBonus
-                    hpbooster = HookHandler("ItemBoosHpEffect",character);
-                    hpbooster += CustomBonusHealthMult;
-                    hpbooster += ModItemManager.GetMultiplierForStat(character, StatIndex.MaxHealth);
-                }
-                //Applying flat bonus and Level up bonus
-                MaxHealth = MaxHealth + HealthBonusItem;
-                //Applying Shaped Glass and mult bonus effects
-                if ((bool)character.inventory)
-                {
-                    MaxHealth *= hpbooster / (character.CalcLunarDaggerPower()*LunarDaggerHealthMalusMult);
-                }
-
-
+                //Item MultiplierBonus
+                hpbooster = HookHandler("ItemBoosHpEffect",character);
+                hpbooster += CustomBonusHealthMult;
+                hpbooster += ModItemManager.GetMultiplierForStat(character, StatIndex.MaxHealth);
+            }
+            //Applying flat bonus and Level up bonus
+            MaxHealth = MaxHealth + HealthBonusItem;
+            //Applying Shaped Glass and mult bonus effects
+            if ((bool)character.inventory)
+            {
+                MaxHealth *= hpbooster / (character.CalcLunarDaggerPower()*LunarDaggerHealthMalusMult);
+            }
+            
             return MaxHealth;
         }
 
@@ -1268,10 +1267,9 @@ namespace PlexusUtils
         #endregion
         static public void ModdedRecalculate(On.RoR2.CharacterBody.orig_RecalculateStats orig, CharacterBody character)
         {
-            if (character == null)
-                return;
-
+            
             ModifyItem(character);
+
 
             character.SetPropertyValue("experience",(float) TeamManager.instance.GetTeamExperience(character.teamComponent.teamIndex));
             float l = (float)TeamManager.instance.GetTeamLevel(character.teamComponent.teamIndex);
@@ -1285,15 +1283,13 @@ namespace PlexusUtils
             
             
             float Level = character.level - 1f;
-
             character.SetPropertyValue("isElite", character.GetFieldValue<BuffMask>("buffMask").containsEliteBuff);
 
             float preHealth = character.maxHealth;
             float preShield = character.maxShield;
-            
+
 
             character.SetPropertyValue("maxHealth", HookHandler("HealthRecalculation",character));
-
 
             character.SetPropertyValue("maxShield", HookHandler("ShieldRecalculation",character));
 
@@ -1315,13 +1311,13 @@ namespace PlexusUtils
             character.SetPropertyValue("crit", HookHandler("CritRecalculation",character));
             character.SetPropertyValue("armor", HookHandler("ArmorRecalculation",character));
             //CoolDown
+            
             float CoolDownMultiplier = HookHandler("CoolDownRecalculation",character);
             if (character.inventory) { 
-                if ((bool)character.GetFieldValue<SkillLocator>("skillLocator").primary) {
+                if ((bool) character.GetFieldValue<SkillLocator>("skillLocator").primary)
                     character.GetFieldValue<SkillLocator>("skillLocator").primary.cooldownScale = HookHandlerMultiplier("PrimaryCoolDownMultiplier", character) * CoolDownMultiplier;
                     if (character.GetFieldValue<SkillLocator>("skillLocator").primary.baseMaxStock > 1)
                         character.GetFieldValue<SkillLocator>("skillLocator").primary.SetBonusStockFromBody((int)HookHandler("PrimaryStackCount",character));
-                }
                 if ((bool) character.GetFieldValue<SkillLocator>("skillLocator").secondary)
                 {
                     character.GetFieldValue<SkillLocator>("skillLocator").secondary.cooldownScale = HookHandlerMultiplier("SecondaryCoolDownMultiplier",character) * CoolDownMultiplier;
