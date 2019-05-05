@@ -4,149 +4,10 @@ using RoR2;
 using System.Reflection;
 using System;
 using UnityEngine.Networking;
-using System.Collections.Generic;
-using Frogtown;
-using UnityEngine.Events;
-using UnityEngine.UI;
-/*
-    CharacterDefault*** : Before Item are apllied
-    ***Effect : Item specific hook
-    ***Recalculate : Applyed after all item are applied
-    PostRecalculate apply hook before the Health and Shield are updated
-
-    Hook are additional,if you want to act multiplicative, do it in PostRecalculate
-    Cooldown hook are MULTIPLICATIVE with other mod/BaseValue, if you want to make it Additional/Substractif, do it in PostRecalculate
-
-    To modify Items stats on character, use the ModifyHook with ModItemManager.AddStatToItem()
-
-    To Create effect, Create a child class of ModHitEffect and in Modify item do : 
-    AddOnHitEffect(YOURITEMINDEX, new YOURCHILDCLASS());
-    for example use "OnHitEnemyReplacement.cs" file, it contain all default rewriten effects
-
-
-    Example Application : 
-    public class ExampleClass : BaseUnityPlugin
-    {
-       
-
-       public float BonusHealth(CharacterBody character) // Exponential Health bonus
-       {
-           float MaxHealth = character.baseMaxHealth;
-            float e = 1.3f;
-           return character.levelMaxHealth * (Mathf.Pow(character.level - 1, e) - character.level);//We reduce "character.level" to prevent this to stack with the actual base value
-       }
-
-       public float ShieldCalculate(CharacterBody character)//Make so Shield Give 5 additional shield per character level
-       {
-           float ShieldBoost = 5;
-           return character.inventory.GetItemCount(ItemIndex.PersonalShield) * (ShieldBoost * (character.level - 1));
-       }
-
-       public void PostRecalculateFunc(CharacterBody character)
-       {
-           //Convert Half the Health as Damage with 0.1 ratio : 
-
-           float BonusDamage = character.maxHealth*0.05f;
-           character.SetPropertyValue("maxHealth", character.maxHealth*0.5f);
-           character.SetPropertyValue("damage", BonusDamage);
-       }
-       public void ModifyItem(CharacterBody character)
-        {
-            //Syringe now give damage but give only give 0.1 attack speed instead of 0.15
-            ModItemManager.AddStatToItem(ItemIndex.Syringe, new ModItemStat(2, StatIndex.Damage));
-            ModItemManager.AddStatToItem(ItemIndex.Syringe, new ModItemStat(0,0,-0.05f, StatIndex.AttackSpeed));
-        }
-
-        float OverWriterHook(CharacterBody character)
-        {
-            return 200 + 100 * (character.level-1);
-        }
-
-        void OverWriteHooker()
-        {
-            ModRecalculate.ResetHook("HealthRecalculation", true); //This line is used to Reset hook, if the TotalReset is true, it'll delete all hook, else it'll only delete de Base_hook
-            ModRecalculate.HealthRecalculation += OverWriterHook; //You have to implement your method after the Reset !
-        }
-
-        public void Awake()
-        {
-            OverWriteHooker(); //Look at OverWriteHooker()
-            ModRecalculate.HealthRecalculation += delegate { return 5; }; //Simple +5 health after item are applied
-            ModRecalculate.CharacterDefaultHealth += BonusHealth; // Apply BonusHealth function result to Health before item are applied
-            ModRecalculate.ShieldItemEffect += ShieldCalculate;  // Apply Shield bonus function result to shield
-            ModRecalculate.PostRecalculate += PostRecalculateFunc;  // Apply the post recalculate function before the Health and Shield is updated
-            ModRecalculate.ModifyItem += ModifyItem;
-        }
-    }
-
-       HOOK LIST (IN ORDER OF CALL) :
-           ModifyItem
-
-           CharacterDefaultHealth
-           InfusionEffect
-           KnurlMaxHpEffect
-           ItemBoosHpEffect
-           HealthRecalculation
-
-           CharacterDefaultShield
-           TranscendenceEffect
-           ShieldItemEffect
-           ShieldRecalculation
-
-           CharacterDefaultRegen
-           SlugEffect
-           KnurlRegenEffect
-           HealthDecayEffect
-           RegenRecalculation
-
-           CharacterDefaultSpeed
-           RedWimpHoofEffect
-           EnergyDrinkEffect
-           BettleJuiceSpeedEffect
-           MoveSpeedRecalculation
-
-           JumpPower
-           JumpCount
-
-           CharacterDefaultDamage
-           BettleJuiceDamageEffect
-           DamageRecalculation
-
-           CharacterDefaultAttackSpeed
-           SyringueEffect
-           BettleJuiceAttackSpeedEffect
-           AttackSpeedRecalculation
-
-           CharacterDefaultCrit
-           GlassesEffect
-           CritRecalculation
-
-           CharacterDefaultArmor
-           BucklerEffect
-           ArmorRecalculation
-
-           AlienHeadEffect
-           CoolDownRecalculation
-
-           PrimaryCoolDownMultiplier
-           PrimaryStackCount
-
-           SecondaryCoolDownMultiplier
-           SecondaryStackCount
-
-           UtilityCoolDownMultiplier
-           UtilityStackCount
-
-           PostRecalculate
-
-       */
-
-
-
 
 namespace PlexusUtils
 {
-    [BepInPlugin(ModRecalculate.Dependency, "ModRecalculate", ModRecalculate.Version)]
+    [BepInPlugin(CharacterStatsAPI.Dependency, "ModRecalculate", CharacterStatsAPI.Version)]
 
     public class PlexusUtils : BaseUnityPlugin
     {
@@ -154,7 +15,7 @@ namespace PlexusUtils
        
         public void Awake()
         {
-            ModRecalculate.Init();
+            CharacterStatsAPI.Init();
 
         }
     }
@@ -167,19 +28,15 @@ namespace PlexusUtils
         Warned = 3, //Closed and Error has been droped
     }
 
-    
-
-    static public class ModRecalculate
+    static public class CharacterStatsAPI
     {
 
         public const string Dependency = "com.Plexus.ModRecalculate";
-        public const string Version = "0.5.1";
-
-        #region Hook
-
-        static event Hook_floatHook BufferHook;
+        public const string Version = "1.0.0";
 
 
+        #region HookHandling
+        private static event Hook_floatHook BufferHook;
         /// <summary>
         /// Reset Hook is used to overwrite Hook
         /// </summary>
@@ -187,8 +44,8 @@ namespace PlexusUtils
         /// <param name="TotalReset"> if false, simply delete the Base_Hook, if true prevent all other hooks </param>
         public static void ResetHook(string HookName,bool TotalReset)
         {
-            if ((OverideState)typeof(ModRecalculate).GetField(HookName + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null) != OverideState.Free) { 
-                FieldInfo f = typeof(ModRecalculate).GetField(HookName, BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public);
+            if ((OverideState)typeof(CharacterStatsAPI).GetField(HookName + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null) != OverideState.Free) { 
+                FieldInfo f = typeof(CharacterStatsAPI).GetField(HookName, BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public);
                 Delegate[] DelegateList = ((MulticastDelegate)f.GetValue(null)).GetInvocationList();
                 if (!TotalReset)
                 {
@@ -204,12 +61,12 @@ namespace PlexusUtils
                     }
 
                     f.SetValue(null, BufferHook);
-                    typeof(ModRecalculate).GetField(HookName + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).SetValue(null, OverideState.Open);
+                    typeof(CharacterStatsAPI).GetField(HookName + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).SetValue(null, OverideState.Open);
                 }
                 else
                 {
                     f.SetValue(null, null);
-                    typeof(ModRecalculate).GetField(HookName + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).SetValue(null, OverideState.Closed);
+                    typeof(CharacterStatsAPI).GetField(HookName + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).SetValue(null, OverideState.Closed);
                 }
 
                 
@@ -225,13 +82,13 @@ namespace PlexusUtils
         private static float HookHandler(string c ,CharacterBody character)
         {
             float value = 0;
-            MulticastDelegate e = (MulticastDelegate)typeof(ModRecalculate).GetField(c, BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null);
+            MulticastDelegate e = (MulticastDelegate)typeof(CharacterStatsAPI).GetField(c, BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null);
 
-            if ((int)typeof(ModRecalculate).GetField(c + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null) >= (int)OverideState.Closed)
+            if ((int)typeof(CharacterStatsAPI).GetField(c + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null) >= (int)OverideState.Closed)
             {
-                if (e.GetInvocationList().Length > 1 && (int)typeof(ModRecalculate).GetField(c + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null) != (int)OverideState.Closed)
+                if (e.GetInvocationList().Length > 1 && (int)typeof(CharacterStatsAPI).GetField(c + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null) != (int)OverideState.Closed)
                 {
-                    typeof(ModRecalculate).GetField(c + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).SetValue(null, (int)OverideState.Warned);
+                    typeof(CharacterStatsAPI).GetField(c + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).SetValue(null, (int)OverideState.Warned);
                     Debug.LogError("Warning, There is Hook added but ignored since a mod decided to overide ALL HOOK on Hook : "+c);
                 }
                 return (float)e.GetInvocationList()[0].DynamicInvoke(character);
@@ -251,13 +108,13 @@ namespace PlexusUtils
         {
             
 
-            MulticastDelegate e = (MulticastDelegate)typeof(ModRecalculate).GetField(c, BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null);
+            MulticastDelegate e = (MulticastDelegate)typeof(CharacterStatsAPI).GetField(c, BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null);
             float value = (float)(e.GetInvocationList()[0].DynamicInvoke(character));
-            if ((int)typeof(ModRecalculate).GetField(c + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null) >= (int)OverideState.Closed)
+            if ((int)typeof(CharacterStatsAPI).GetField(c + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null) >= (int)OverideState.Closed)
             {
-                if (e.GetInvocationList().Length > 1 && (int)typeof(ModRecalculate).GetField(c + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null) != (int)OverideState.Closed)
+                if (e.GetInvocationList().Length > 1 && (int)typeof(CharacterStatsAPI).GetField(c + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).GetValue(null) != (int)OverideState.Closed)
                 {
-                    typeof(ModRecalculate).GetField(c + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).SetValue(null, (int)OverideState.Warned);
+                    typeof(CharacterStatsAPI).GetField(c + "_Overide", BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public).SetValue(null, (int)OverideState.Warned);
                     Debug.LogError("Warning, There is Hook added but ignored since a mod decided to overide ALL HOOK on Hook : " + c);
                 }
                 return value;
@@ -270,19 +127,15 @@ namespace PlexusUtils
             return value;
         }
 
-
-
         public delegate float Hook_floatHook(CharacterBody character);
         public delegate void Hook_voidHook(CharacterBody character);
-
-        //Hook to apply change before the Update of Health and Shield
-
+        #endregion
+        #region HookList
         public static event Hook_voidHook PostRecalculate;
-
         public static event Hook_voidHook ModifyItem;
 
-        //Health related Hook
         #region health
+        //Health related Hook
         public static event Hook_floatHook HealthRecalculation;
         public static OverideState HealthRecalculation_Overide = 0;
         public static event Hook_floatHook CharacterDefaultHealth;
@@ -292,7 +145,6 @@ namespace PlexusUtils
         public static event Hook_floatHook ItemBoosHpEffect;
         public static OverideState ItemBoosHpEffect_Overide = 0;
         #endregion
-
         #region shield
         //Shield Related Hook
         public static event Hook_floatHook ShieldRecalculation;
@@ -302,6 +154,7 @@ namespace PlexusUtils
         public static event Hook_floatHook TranscendenceEffect;
         public static OverideState TranscendenceEffect_Overide = 0;
         #endregion
+        #region HpRegen
         //HealthRegen related Hook
         public static event Hook_floatHook RegenRecalculation;
         public static OverideState RegenRecalculation_Overide = 0;
@@ -309,7 +162,8 @@ namespace PlexusUtils
         public static OverideState CharacterDefaultRegen_Overide = 0;
         public static event Hook_floatHook HealthDecayEffect;
         public static OverideState HealthDecayEffect_Overide = 0;
-
+        #endregion
+        #region MoveSpeed
         //MoveSpeed related Hook
         public static event Hook_floatHook MoveSpeedRecalculation;
         public static OverideState MoveSpeedRecalculation_Overide = 0;
@@ -317,12 +171,14 @@ namespace PlexusUtils
         public static OverideState CharacterDefaultSpeed_Overide = 0;
         public static event Hook_floatHook BettleJuiceSpeedEffect;
         public static OverideState BettleJuiceSpeedEffect_Overide = 0;
-
+        #endregion
+        #region Jumps
         public static event Hook_floatHook JumpPower;
         public static OverideState JumpPower_Overide = 0;
         public static event Hook_floatHook JumpCount;
         public static OverideState JumpCount_Overide = 0;
-
+        #endregion
+        #region Damage
         public static event Hook_floatHook DamageRecalculation;
         public static OverideState DamageRecalculation_Overide = 0;
         public static event Hook_floatHook CharacterDefaultDamage;
@@ -331,27 +187,32 @@ namespace PlexusUtils
         public static OverideState BettleJuiceDamageEffect_Overide = 0;
         public static event Hook_floatHook DamageBoostEffect;
         public static OverideState DamageBoostEffect_Overide = 0;
-
+        #endregion
+        #region AttackSpeed
         public static event Hook_floatHook AttackSpeedRecalculation;
         public static OverideState AttackSpeedRecalculation_Overide = 0;
         public static event Hook_floatHook CharacterDefaultAttackSpeed;
         public static OverideState CharacterDefaultAttackSpeed_Overide = 0;
         public static event Hook_floatHook BettleJuiceAttackSpeedEffect;
         public static OverideState BettleJuiceAttackSpeedEffect_Overide = 0;
-
+        #endregion
+        #region Crit
         public static event Hook_floatHook CritRecalculation;
         public static OverideState CritRecalculation_Overide = 0;
         public static event Hook_floatHook CharacterDefaultCrit;
         public static OverideState CharacterDefaultCrit_Overide = 0;
-
+        #endregion
+        #region Armor
         public static event Hook_floatHook ArmorRecalculation;
         public static OverideState ArmorRecalculation_Overide = 0;
         public static event Hook_floatHook CharacterDefaultArmor;
         public static OverideState CharacterDefaultArmor_Overide = 0;
-
+        #endregion
+        #region CD
         public static event Hook_floatHook CoolDownRecalculation;
         public static OverideState CoolDownRecalculation_Overide = 0;
-
+        #endregion
+        #region CoolDown
         public static event Hook_floatHook PrimaryCoolDownMultiplier;
         public static OverideState PrimaryCoolDownMultiplier_Overide = 0;
         public static event Hook_floatHook SecondaryCoolDownMultiplier;
@@ -360,7 +221,8 @@ namespace PlexusUtils
         public static OverideState UtilityCoolDownMultiplier_Overide = 0;
         public static event Hook_floatHook SpecialCoolDownMultiplier;
         public static OverideState SpecialCoolDownMultiplier_Overide = 0;
-
+        #endregion
+        #region AbilityStock
         public static event Hook_floatHook PrimaryStackCount;
         public static OverideState PrimaryStackCount_Overide = 0;
         public static event Hook_floatHook SecondaryStackCount;
@@ -370,10 +232,10 @@ namespace PlexusUtils
         public static event Hook_floatHook SpecialStackCount;
         public static OverideState SpecialStackCount_Overide = 0;
         #endregion
+        #endregion
 
-        #region VariableHell
-
-        #region HealthShieldAndRegen
+        #region OtherVariables
+        #region Health
         //Max Health
         private static float m_base_InfusionMult = 1;
         public static float InfusionMult;
@@ -381,24 +243,25 @@ namespace PlexusUtils
         public static float LunarDaggerHealthMalusMult;
         private static float m_base_CustomBonusHealthMult = 0;
         public static float CustomBonusHealthMult;
-
+        #endregion
+        #region Shield
         //Max Shield
         private static float m_base_TranscendenceBonus = 0.5f;
         public static float TranscendenceBonus;
         private static float m_base_TranscendenceStack = 0.25f;
         public static float TranscendenceStack;
         private static float m_base_CustomBonusShieldMult =0;
-        public static float CustomBonusShieldMult; 
-
+        public static float CustomBonusShieldMult;
+        #endregion
+        #region Regen
         //Regen
         private static float m_base_HealthDecayMult = 1;
         public static float HealthDecayMult;
         #endregion
-        #region SpeedAndMobility
+        #region Speed
         //Speed Item
         private static float m_base_BettleJuiceSpeedMalus = 0.05f;
         public static float BettleJuiceSpeedMalus;
-
         //Speed Buff
         private static float m_base_AffixYellowMoveSpeed = 2;
         public static float AffixYellowMoveSpeed;
@@ -418,7 +281,7 @@ namespace PlexusUtils
         public static float EngiTeamShieldSpeed;
 
         #endregion
-        #region DamageAndAttackSpeed
+        #region Damage
         //Damage
         private static float m_base_BettleJuiceDamageMalus = 0.05f;
         public static float BettleJuiceDamageMalus;
@@ -426,7 +289,8 @@ namespace PlexusUtils
         public static float GoldEmpoweredDamage;
         private static float m_base_LunarDaggerDamageMult = 1;
         public static float LunarDaggerDamageMult;
-
+        #endregion
+        #region AttackSpeed
         //AttackSpeed
         private static float m_base_BettleJuiceAttackSpeedMalus = 0.05f;
         public static float BettleJuiceAttackSpeedMalus;
@@ -439,11 +303,12 @@ namespace PlexusUtils
         private static float m_base_WarCryAttackSpeed = 1;
         public static float WarCryAttackSpeed;
         #endregion
-        #region CritAndArmor
+        #region Crit
         //CriticalChance
         private static float m_base_HUDCrit = 100;
         public static float HUDCrit;
-
+        #endregion
+        #region Armor
         //Armor
         private static float m_base_ArmorBoostBuff = 200;
         public static float ArmorBoostBuff;
@@ -457,8 +322,7 @@ namespace PlexusUtils
         #endregion
         #endregion
 
-
-        private static void Base_ModifyItem(CharacterBody character) //Yes it was fun making all those !
+        private static void Base_ModifyItem(CharacterBody character) //To apply Custom value for stuff not handled by ModItem
         {
             InfusionMult = m_base_InfusionMult;
             CustomBonusHealthMult = m_base_CustomBonusHealthMult;
@@ -572,7 +436,7 @@ namespace PlexusUtils
         }
 
         #region BaseHook
-        //HEALTH FUNCTIONS
+        //health
         static public float Base_CharacterDefaultHealth(CharacterBody character)
         {
             return character.baseMaxHealth + (character.level - 1) * character.levelMaxHealth;
@@ -612,8 +476,7 @@ namespace PlexusUtils
 
             return MaxHealth;
         }
-
-        //SHIELD FUNCTIONS
+        //shield
         static public float Base_CharacterDefaultShield(CharacterBody character)
         {
             return (character.baseMaxShield + character.levelMaxShield * (character.level - 1));
@@ -658,13 +521,12 @@ namespace PlexusUtils
             MaxShield *= (1+CustomBonusShieldMult+ ModItemManager.GetMultiplierForStat(character, StatIndex.MaxShield) );
             return MaxShield;
         }
-
-        //REGEN FUNCTIONS
+        //regen
         static public float Base_CharacterDefaultRegen(CharacterBody character)
         {
             return (character.baseRegen + character.levelRegen * (character.level - 1)) * 2.5f;
         }
-        static public float Base_HealthDecayEffect(CharacterBody character) //I guess that just for debuff ??
+        static public float Base_HealthDecayEffect(CharacterBody character) //FireDebuff
         {
             if (character.inventory.GetItemCount(ItemIndex.HealthDecay) > 0 && HealthDecayMult != 0)
                 return character.maxHealth / (character.inventory.GetItemCount(ItemIndex.HealthDecay)* HealthDecayMult);
@@ -693,7 +555,6 @@ namespace PlexusUtils
             return totalRegen;
             
         }
-
         //MoveSpeed
         static public float Base_CharacterDefaultSpeed(CharacterBody character)
         {
@@ -778,7 +639,6 @@ namespace PlexusUtils
 
             return MoveSpeed;
         }
-
         //Mobility
         static public float Base_JumpPower(CharacterBody character)
         {
@@ -792,7 +652,6 @@ namespace PlexusUtils
             JumpCount *= 1 + ModItemManager.GetMultiplierForStat(character, StatIndex.JumpCount);
             return JumpCount;
         }
-
         //Damage
         static public float Base_CharacterDefaultDamage(CharacterBody character)
         {
@@ -827,7 +686,6 @@ namespace PlexusUtils
             DamageMult += ModItemManager.GetMultiplierForStat(character, StatIndex.Damage);
             return BaseDamage*DamageMult;
         }
-
         //Attack Speed
         static public float Base_CharacterDefaultAttackSpeed(CharacterBody character)
         {
@@ -868,7 +726,6 @@ namespace PlexusUtils
 
             return AttackSpeed;
         }
-
         //CritChance
         static public float Base_CharacterDefaultCrit(CharacterBody character)
         {
@@ -888,7 +745,6 @@ namespace PlexusUtils
             
             return CriticalChance;
         }
-
         //Armor
         static public float Base_CharacterDefaultArmor(CharacterBody character)
         {
@@ -927,7 +783,7 @@ namespace PlexusUtils
 
             return CoolDownMultiplier;
         }
-
+        //CD
         static public float Base_PrimaryCoolDownMultiplier(CharacterBody character)
         {
             float CoolDownMultiplier = 1f;
@@ -960,7 +816,7 @@ namespace PlexusUtils
             CoolDownMultiplier *= ModItemManager.GetMultiplierForStatCD(character, StatIndex.CoolDownSpecial);
             return CoolDownMultiplier;
         }
-
+        //Stock
         static public float Base_PrimaryStackCount(CharacterBody character)
         {
             float count = 0;
@@ -993,6 +849,8 @@ namespace PlexusUtils
         }
 
         #endregion
+
+        //Main Function
         static public void ModdedRecalculate(On.RoR2.CharacterBody.orig_RecalculateStats orig, CharacterBody character)
         {
             if (character == null)
@@ -1093,12 +951,7 @@ namespace PlexusUtils
             }
             character.SetFieldValue("statsDirty",false);
         }
-
-
-
     }
-
-
 }
 
 public static class ReflectionHelper
