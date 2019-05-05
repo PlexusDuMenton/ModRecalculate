@@ -711,5 +711,10 @@ namespace PlexusUtils
             }
         }
 
+        static public void AddNewItem(string name)
+        {
+            ItemIndex newMember = (ItemIndex)79;
+            Debug.Log(newMember.ToString());
+        }
     }
 }

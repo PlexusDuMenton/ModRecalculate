@@ -289,8 +289,6 @@ namespace PlexusUtils
         public static OverideState CharacterDefaultHealth_Overide = 0;
         public static event Hook_floatHook InfusionEffect;
         public static OverideState InfusionEffect_Overide = 0;
-        public static event Hook_floatHook KnurlMaxHpEffect;
-        public static OverideState KnurlMaxHpEffect_Overide = 0;
         public static event Hook_floatHook ItemBoosHpEffect;
         public static OverideState ItemBoosHpEffect_Overide = 0;
         #endregion
@@ -303,18 +301,12 @@ namespace PlexusUtils
         public static OverideState CharacterDefaultShield_Overide = 0;
         public static event Hook_floatHook TranscendenceEffect;
         public static OverideState TranscendenceEffect_Overide = 0;
-        public static event Hook_floatHook ShieldItemEffect;
-        public static OverideState ShieldItemEffect_Overide = 0;
         #endregion
         //HealthRegen related Hook
         public static event Hook_floatHook RegenRecalculation;
         public static OverideState RegenRecalculation_Overide = 0;
         public static event Hook_floatHook CharacterDefaultRegen;
         public static OverideState CharacterDefaultRegen_Overide = 0;
-        public static event Hook_floatHook SlugEffect;
-        public static OverideState SlugEffect_Overide = 0;
-        public static event Hook_floatHook KnurlRegenEffect;
-        public static OverideState KnurlRegenEffect_Overide = 0;
         public static event Hook_floatHook HealthDecayEffect;
         public static OverideState HealthDecayEffect_Overide = 0;
 
@@ -323,10 +315,6 @@ namespace PlexusUtils
         public static OverideState MoveSpeedRecalculation_Overide = 0;
         public static event Hook_floatHook CharacterDefaultSpeed;
         public static OverideState CharacterDefaultSpeed_Overide = 0;
-        public static event Hook_floatHook RedWimpHoofEffect;
-        public static OverideState RedWimpHoofEffect_Overide = 0;
-        public static event Hook_floatHook EnergyDrinkEffect;
-        public static OverideState EnergyDrinkEffect_Overide = 0;
         public static event Hook_floatHook BettleJuiceSpeedEffect;
         public static OverideState BettleJuiceSpeedEffect_Overide = 0;
 
@@ -348,8 +336,6 @@ namespace PlexusUtils
         public static OverideState AttackSpeedRecalculation_Overide = 0;
         public static event Hook_floatHook CharacterDefaultAttackSpeed;
         public static OverideState CharacterDefaultAttackSpeed_Overide = 0;
-        public static event Hook_floatHook SyringueEffect;
-        public static OverideState SyringueEffect_Overide = 0;
         public static event Hook_floatHook BettleJuiceAttackSpeedEffect;
         public static OverideState BettleJuiceAttackSpeedEffect_Overide = 0;
 
@@ -357,20 +343,14 @@ namespace PlexusUtils
         public static OverideState CritRecalculation_Overide = 0;
         public static event Hook_floatHook CharacterDefaultCrit;
         public static OverideState CharacterDefaultCrit_Overide = 0;
-        public static event Hook_floatHook GlassesEffect;
-        public static OverideState GlassesEffect_Overide = 0;
 
         public static event Hook_floatHook ArmorRecalculation;
         public static OverideState ArmorRecalculation_Overide = 0;
         public static event Hook_floatHook CharacterDefaultArmor;
         public static OverideState CharacterDefaultArmor_Overide = 0;
-        public static event Hook_floatHook BucklerEffect;
-        public static OverideState BucklerEffect_Overide = 0;
 
         public static event Hook_floatHook CoolDownRecalculation;
         public static OverideState CoolDownRecalculation_Overide = 0;
-        public static event Hook_floatHook AlienHeadEffect;
-        public static OverideState AlienHeadEffect_Overide = 0;
 
         public static event Hook_floatHook PrimaryCoolDownMultiplier;
         public static OverideState PrimaryCoolDownMultiplier_Overide = 0;
@@ -397,21 +377,12 @@ namespace PlexusUtils
         //Max Health
         private static float m_base_InfusionMult = 1;
         public static float InfusionMult;
-        private static float m_base_KnurlHealth = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float KnurlHealth;
-        private static float m_base_ItemBoostEffectMult = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float ItemBoostEffectMult;
         private static float m_base_LunarDaggerHealthMalusMult = 1;
         public static float LunarDaggerHealthMalusMult;
         private static float m_base_CustomBonusHealthMult = 0;
         public static float CustomBonusHealthMult;
 
         //Max Shield
-        private static float m_base_ShieldGen = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float ShieldGen;
         private static float m_base_TranscendenceBonus = 0.5f;
         public static float TranscendenceBonus;
         private static float m_base_TranscendenceStack = 0.25f;
@@ -420,32 +391,11 @@ namespace PlexusUtils
         public static float CustomBonusShieldMult; 
 
         //Regen
-        private static float m_base_SlugBonus = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float SlugBonus;
-        private static float m_base_SlugStack = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float SlugStack;
-        private static float m_base_KnurlRegen = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float KnurlRegen;
         private static float m_base_HealthDecayMult = 1;
         public static float HealthDecayMult;
         #endregion
         #region SpeedAndMobility
         //Speed Item
-        private static float m_base_RedWimp = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float RedWimp;
-        private static float m_base_Hoof = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float Hoof;
-        private static float m_base_EnergyDrinkBonus = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float EnergyDrinkBonus;
-        private static float m_base_EnergyDrinkStack = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float EnergyDrinkStack;
         private static float m_base_BettleJuiceSpeedMalus = 0.05f;
         public static float BettleJuiceSpeedMalus;
 
@@ -467,31 +417,17 @@ namespace PlexusUtils
         private static float m_base_EngiTeamShieldSpeed = 0.3f;
         public static float EngiTeamShieldSpeed;
 
-
-        //Mobility
-        private static int m_base_BonusJumpPower = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static int BonusJumpPower;
-        private static int m_base_BonusJumpCount = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static int BonusJumpCount;
         #endregion
         #region DamageAndAttackSpeed
         //Damage
         private static float m_base_BettleJuiceDamageMalus = 0.05f;
         public static float BettleJuiceDamageMalus;
-        private static float m_base_DamageBoost = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float DamageBoost;
         private static float m_base_GoldEmpoweredDamage = 1;
         public static float GoldEmpoweredDamage;
         private static float m_base_LunarDaggerDamageMult = 1;
         public static float LunarDaggerDamageMult;
 
         //AttackSpeed
-        private static float m_base_SyringueSpeed = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float SyringueSpeed;
         private static float m_base_BettleJuiceAttackSpeedMalus = 0.05f;
         public static float BettleJuiceAttackSpeedMalus;
         private static float m_base_AffixYellowAttackSpeed = 0.5f;
@@ -505,99 +441,35 @@ namespace PlexusUtils
         #endregion
         #region CritAndArmor
         //CriticalChance
-        private static float m_base_GlassCrit = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float GlassCrit;
-        private static float m_base_GlassCritStack = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float GlassCritStack;
-        private static float m_base_PredatoryInstincCrit = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float PredatoryInstincCrit;
-        private static float m_base_PredatoryInstincCritStack = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float PredatoryInstincCritStack;
-        private static float m_base_WickedRingCrit = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float WickedRingCrit;
-        private static float m_base_WickedRingCritStack = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float WickedRingCritStack;
-        private static float m_base_ScytheCrit = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float ScytheCrit;
-        private static float m_base_ScytheCritStack = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float ScytheCritStack;
-        private static float m_base_CritHealCrit = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float CritHealCrit;
-        private static float m_base_CritHealCritStack = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float CritHealCritStack;
         private static float m_base_HUDCrit = 100;
         public static float HUDCrit;
 
         //Armor
-        private static float m_base_BucklerArmor = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float BucklerArmor;
         private static float m_base_ArmorBoostBuff = 200;
         public static float ArmorBoostBuff;
         private static float m_base_CrippleDebuff = 20;
         public static float CrippleDebuff;
-        public static float m_base_DrizzlePlayerHelper = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float DrizzlePlayerHelper;
         #endregion
         #region CD
         //CoolDown
-        public static float m_base_AlienHeadCDMult = 1;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float AlienHeadCDMult;
         public static float m_base_GoldEmpoweredCD = 0.25f;
         public static float GoldEmpoweredCD;
-
-        public static float m_base_SecondarySkillMagazineCD = 1;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float SecondarySkillMagazineCD;
-        public static float m_base_UtilitySkillMagazineCD = 1;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float UtilitySkillMagazineCD;
-
-        public static float m_base_SecondarySkillMagazineCount = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float SecondarySkillMagazineCount;
-        public static float m_base_UtilitySkillMagazineCount = 0;
-        [Obsolete("obselete, Please use ModItemManager.AddStatToItem() to add stats to item, this will no longer be supported on 1.0.0 release")]
-        public static float UtilitySkillMagazineCount;
         #endregion
         #endregion
 
 
-#pragma warning disable CS0618 // Le type ou le membre est obsolète
         private static void Base_ModifyItem(CharacterBody character) //Yes it was fun making all those !
         {
             InfusionMult = m_base_InfusionMult;
-            KnurlHealth = m_base_KnurlHealth;
             CustomBonusHealthMult = m_base_CustomBonusHealthMult;
-            ItemBoostEffectMult = m_base_ItemBoostEffectMult;
             LunarDaggerHealthMalusMult = m_base_LunarDaggerHealthMalusMult;
 
-            ShieldGen = m_base_ShieldGen;
             TranscendenceBonus = m_base_TranscendenceBonus;
             TranscendenceStack = m_base_TranscendenceStack;
             CustomBonusShieldMult = m_base_CustomBonusShieldMult;
 
-            SlugBonus = m_base_SlugBonus;
-            SlugStack = m_base_SlugStack;
-            KnurlRegen = m_base_KnurlRegen;
             HealthDecayMult = m_base_HealthDecayMult;
 
-            RedWimp = m_base_RedWimp;
-            Hoof = m_base_Hoof;
-            EnergyDrinkBonus = m_base_EnergyDrinkBonus;
-            EnergyDrinkStack = m_base_EnergyDrinkStack;
             BettleJuiceSpeedMalus = m_base_BettleJuiceSpeedMalus;
 
             AffixYellowMoveSpeed = m_base_AffixYellowMoveSpeed;
@@ -609,44 +481,21 @@ namespace PlexusUtils
             WarCryBuffSpeed = m_base_WarCryBuffSpeed;
             EngiTeamShieldSpeed = m_base_EngiTeamShieldSpeed;
 
-            BonusJumpPower = m_base_BonusJumpPower;
-            BonusJumpCount = m_base_BonusJumpCount;
-
             BettleJuiceDamageMalus = m_base_BettleJuiceDamageMalus;
-            DamageBoost = m_base_DamageBoost;
             GoldEmpoweredDamage = m_base_GoldEmpoweredDamage;
             LunarDaggerDamageMult = m_base_LunarDaggerDamageMult;
 
-            SyringueSpeed = m_base_SyringueSpeed;
             BettleJuiceAttackSpeedMalus = m_base_BettleJuiceAttackSpeedMalus;
             AffixYellowAttackSpeed = m_base_AffixYellowAttackSpeed;
             WarbannerAttackSpeed = m_base_WarbannerAttackSpeed;
             EnrageAncientWispAttackSpeed = m_base_EnrageAncientWispAttackSpeed;
             WarCryAttackSpeed = m_base_WarCryAttackSpeed;
 
-            WickedRingCrit = m_base_WickedRingCrit;
-            WickedRingCritStack = m_base_WickedRingCritStack;
-            ScytheCrit = m_base_ScytheCrit;
-            ScytheCritStack = m_base_ScytheCritStack;
-            CritHealCrit = m_base_CritHealCrit;
-            CritHealCritStack = m_base_CritHealCritStack;
             HUDCrit = m_base_HUDCrit;
-            GlassCrit = m_base_GlassCrit;
-            GlassCritStack = m_base_GlassCritStack;
-            PredatoryInstincCrit = m_base_PredatoryInstincCrit;
-            PredatoryInstincCritStack = m_base_PredatoryInstincCritStack;
 
-            DrizzlePlayerHelper = m_base_DrizzlePlayerHelper;
             CrippleDebuff = m_base_CrippleDebuff;
             ArmorBoostBuff = m_base_ArmorBoostBuff;
-            BucklerArmor = m_base_BucklerArmor;
-
-            UtilitySkillMagazineCount = m_base_UtilitySkillMagazineCount;
-            SecondarySkillMagazineCount = m_base_SecondarySkillMagazineCount;
-            UtilitySkillMagazineCD = m_base_UtilitySkillMagazineCD;
-            SecondarySkillMagazineCD = m_base_SecondarySkillMagazineCD;
             GoldEmpoweredCD = m_base_GoldEmpoweredCD;
-            AlienHeadCDMult = m_base_AlienHeadCDMult;
 
             ModItemManager.Update();
 
@@ -656,33 +505,26 @@ namespace PlexusUtils
         static public void Init()
         {
             ModItemManager.Init();
-            ModOnHitEnemy.Init();
+            ModEffects.Init();
             ModifyItem = Base_ModifyItem;
 
             //Health
             CharacterDefaultHealth = Base_CharacterDefaultHealth;
             InfusionEffect = Base_InfusionEffect;
-            KnurlMaxHpEffect = Base_KnurlMaxHpEffect;
-            ItemBoosHpEffect = Base_ItemBoosHpEffect;
             HealthRecalculation = Base_RecalculateHealth;
 
             //Shield
             CharacterDefaultShield = Base_CharacterDefaultShield;
             TranscendenceEffect = Base_TranscendenceEffect;
-            ShieldItemEffect = Base_ShieldItemEffect;
             ShieldRecalculation = Base_ShieldRecalculation;
 
             //Health regen
             CharacterDefaultRegen = Base_CharacterDefaultRegen;
-            SlugEffect = Base_SlugEffect;
-            KnurlRegenEffect = Base_KnurlRegenEffect;
             HealthDecayEffect = Base_HealthDecayEffect;
             RegenRecalculation = Base_RegenRecalculation;
 
             //MoveSpeed
             CharacterDefaultSpeed = Base_CharacterDefaultSpeed;
-            RedWimpHoofEffect = Base_RedWimpHoofEffect;
-            EnergyDrinkEffect = Base_EnergyDrinkEffect;
             BettleJuiceSpeedEffect = Base_BettleJuiceSpeedEffect;
             MoveSpeedRecalculation = Base_MoveSpeedRecalculation;
 
@@ -700,22 +542,18 @@ namespace PlexusUtils
             //AttackSpeed
             AttackSpeedRecalculation = Base_AttackSpeedRecalculation;
             CharacterDefaultAttackSpeed = Base_CharacterDefaultAttackSpeed;
-            SyringueEffect = Base_SyringueEffect;
             BettleJuiceAttackSpeedEffect = Base_BettleJuiceAttackSpeedEffect;
 
             //Critical Chance
             CritRecalculation = Base_CritRecalculation;
             CharacterDefaultCrit = Base_CharacterDefaultCrit;
-            GlassesEffect = Base_GlassesEffect;
 
             //Armor
             CharacterDefaultArmor = Base_CharacterDefaultArmor;
-            BucklerEffect = Base_BucklerEffect;
             ArmorRecalculation = Base_ArmorRecalculation;
 
             //Cooldown
             CoolDownRecalculation = Base_CoolDownRecalculation;
-            AlienHeadEffect = Base_AlienHeadEffect;
 
             //ability bonus cooldown
             PrimaryCoolDownMultiplier = Base_PrimaryCoolDownMultiplier;
@@ -745,14 +583,6 @@ namespace PlexusUtils
                 return character.inventory.infusionBonus * InfusionMult;
             return 0;
         }
-        static public float Base_KnurlMaxHpEffect(CharacterBody character)
-        {
-            return character.inventory.GetItemCount(ItemIndex.Knurl) * KnurlHealth;
-        }
-        static public float Base_ItemBoosHpEffect(CharacterBody character)
-        {
-            return 1 + character.inventory.GetItemCount(ItemIndex.BoostHp) * ItemBoostEffectMult;
-        }
         static public float Base_RecalculateHealth(CharacterBody character)
         {
             //CharacterLinked Health Stats
@@ -764,8 +594,6 @@ namespace PlexusUtils
                 //Item Linked Bonus
                 if ((bool)character.inventory) { 
                     //Item Flat Bonus
-                    HealthBonusItem += HookHandler("InfusionEffect", character);
-                    HealthBonusItem += HookHandler("KnurlMaxHpEffect", character);
                     HealthBonusItem += ModItemManager.GetBonusForStat(character, StatIndex.MaxHealth);
 
                     //Item MultiplierBonus
@@ -801,10 +629,6 @@ namespace PlexusUtils
             }
             return shield;
         }
-        static public float Base_ShieldItemEffect(CharacterBody character)
-        {
-            return character.inventory.GetItemCount(ItemIndex.PersonalShield) * ShieldGen;
-        }
         static public float Base_ShieldRecalculation(CharacterBody character)
         {
             //CharacterLinked Shield Stats
@@ -814,7 +638,6 @@ namespace PlexusUtils
             if ((bool)character.inventory)
             {
                 MaxShield += HookHandler("TranscendenceEffect",character);
-                MaxShield += HookHandler("ShieldItemEffect",character);
             }
 
             //Default Game Buff
@@ -841,16 +664,6 @@ namespace PlexusUtils
         {
             return (character.baseRegen + character.levelRegen * (character.level - 1)) * 2.5f;
         }
-        static public float Base_SlugEffect(CharacterBody character)
-        {
-            if (character.outOfDanger && character.inventory.GetItemCount(ItemIndex.HealWhileSafe) > 0)
-                return (SlugBonus + (character.inventory.GetItemCount(ItemIndex.HealWhileSafe) - 1) * SlugStack);
-            return 0;
-        }
-        static public float Base_KnurlRegenEffect(CharacterBody character)
-        {
-            return character.inventory.GetItemCount(ItemIndex.Knurl) * KnurlRegen;
-        }
         static public float Base_HealthDecayEffect(CharacterBody character) //I guess that just for debuff ??
         {
             if (character.inventory.GetItemCount(ItemIndex.HealthDecay) > 0 && HealthDecayMult != 0)
@@ -865,12 +678,9 @@ namespace PlexusUtils
             //Item Related
             if ((bool)character.inventory)
             {
-                if (character.inventory.GetItemCount(ItemIndex.HealWhileSafe) > 0)
-                    RegenBonus += (BaseRegen * HookHandler("SlugEffect",character)) - BaseRegen;
                 RegenBonus += ModItemManager.GetBonusForStat(character, StatIndex.Regen);
                 if (character.outOfDanger)
                     RegenBonus += ModItemManager.GetBonusForStat(character, StatIndex.SafeRegen);
-                RegenBonus += HookHandler("KnurlRegenEffect",character);
                 RegenBonus -= HookHandler("HealthDecayEffect",character);
             }
 
@@ -889,34 +699,6 @@ namespace PlexusUtils
         {
             return character.baseMoveSpeed + character.levelMoveSpeed * (character.level - 1);
         }
-        static public float Base_RedWimpHoofEffect(CharacterBody character) //SinceRedWimp and hoof are linked, also I'm too lazy to rewrite this ¯\_(ツ)_/¯
-        {
-            float RedWinpBonus = 1f;
-
-            //Couldn't realy pinpoints what this thing realy is, guess it's unimplemented stuff
-            if (Run.instance.enabledArtifacts.HasArtifact(ArtifactIndex.Spirit))
-            {
-                float num33 = 1f;
-                if ((bool)character.healthComponent)
-                    num33 = character.healthComponent.combinedHealthFraction;
-                RedWinpBonus += 1f - num33;
-            }
-
-            if ((bool)character.inventory)
-            {
-                if (character.outOfCombat && character.outOfDanger && character.inventory.GetItemCount(ItemIndex.SprintOutOfCombat) > 0)
-                    RedWinpBonus += (float)character.inventory.GetItemCount(ItemIndex.SprintOutOfCombat) * RedWimp;
-
-                return RedWinpBonus + (float)character.inventory.GetItemCount(ItemIndex.Hoof) * Hoof;
-            }
-            return RedWinpBonus;
-        }
-        static public float Base_EnergyDrinkEffect(CharacterBody character)
-        {
-            if (character.isSprinting && character.inventory.GetItemCount(ItemIndex.SprintBonus) > 0)
-                return (m_base_EnergyDrinkBonus + m_base_EnergyDrinkStack * (character.inventory.GetItemCount(ItemIndex.SprintBonus)-1)) / character.GetFieldValue<float>("sprintingSpeedMultiplier");
-            return 0;
-        }
         static public float Base_BettleJuiceSpeedEffect(CharacterBody character) //My guess is that it's just a slow debuff
         {
             
@@ -926,7 +708,7 @@ namespace PlexusUtils
         {
             float BaseMoveSpeed = HookHandler("CharacterDefaultSpeed",character);
 
-            float SpeedBonus = HookHandler("RedWimpHoofEffect",character);
+            float SpeedBonus = 0;
 
 
             //More weird stuff
@@ -939,10 +721,6 @@ namespace PlexusUtils
 
 
             //SpeedBonus
-            if ((bool)character.inventory)
-            {
-                SpeedBonus += HookHandler("EnergyDrinkEffect",character);
-            }
             if (character.HasBuff(BuffIndex.BugWings))
                 SpeedBonus += BugWingBuff;
             if (character.HasBuff(BuffIndex.Warbanner))
@@ -1004,13 +782,13 @@ namespace PlexusUtils
         //Mobility
         static public float Base_JumpPower(CharacterBody character)
         {
-            float JumpPower = character.baseJumpPower + character.levelJumpPower * (character.level - 1) + BonusJumpPower + ModItemManager.GetBonusForStat(character, StatIndex.JumpPower);
+            float JumpPower = character.baseJumpPower + character.levelJumpPower * (character.level - 1) + ModItemManager.GetBonusForStat(character, StatIndex.JumpPower);
             JumpPower *= 1 + ModItemManager.GetMultiplierForStat(character, StatIndex.JumpPower);
             return JumpPower;
         }
         static public float Base_JumpCount(CharacterBody character)
         {
-            float JumpCount = character.baseJumpCount + BonusJumpCount + ModItemManager.GetBonusForStat(character, StatIndex.JumpCount);
+            float JumpCount = character.baseJumpCount + ModItemManager.GetBonusForStat(character, StatIndex.JumpCount);
             JumpCount *= 1 + ModItemManager.GetMultiplierForStat(character, StatIndex.JumpCount);
             return JumpCount;
         }
@@ -1055,10 +833,6 @@ namespace PlexusUtils
         {
             return character.baseAttackSpeed + character.levelAttackSpeed * (character.level - 1);
         }
-        static public float Base_SyringueEffect(CharacterBody character) //My guess is that it's just a slow debuff
-        {
-            return character.inventory.GetItemCount(ItemIndex.Syringe) * SyringueSpeed;
-        }
         static public float Base_BettleJuiceAttackSpeedEffect(CharacterBody character) //My guess is that it's just a slow debuff
         {
             if (character.GetBuffCount(BuffIndex.BeetleJuice) > 0)
@@ -1072,7 +846,6 @@ namespace PlexusUtils
             //Item efect
             float AttackSpeedBonus = 1f;
             if (character.inventory) { 
-                AttackSpeedBonus += HookHandler("SyringueEffect",character);
                 if (character.inventory.currentEquipmentIndex == EquipmentIndex.AffixYellow)
                     AttackSpeedBonus += AffixYellowAttackSpeed;
             }
@@ -1101,32 +874,18 @@ namespace PlexusUtils
         {
             return character.baseCrit + character.levelCrit * (character.level - 1);
         }
-        static public float Base_GlassesEffect(CharacterBody character)
-        {
-            if (character.inventory.GetItemCount(ItemIndex.CritGlasses) > 0)
-                return (character.inventory.GetItemCount(ItemIndex.CritGlasses)-1) * GlassCritStack + GlassCrit;
-            return 0;
-        }
         static public float Base_CritRecalculation(CharacterBody character)
         {
             float CriticalChance = HookHandler("CharacterDefaultCrit",character);
 
-            if (character.inventory) {
-                CriticalChance += HookHandler("GlassesEffect",character);
-                if (character.inventory.GetItemCount(ItemIndex.AttackSpeedOnCrit) > 0)
-                    CriticalChance += PredatoryInstincCrit + PredatoryInstincCritStack*(character.inventory.GetItemCount(ItemIndex.AttackSpeedOnCrit)-1);
-                if (character.inventory.GetItemCount(ItemIndex.CooldownOnCrit) > 0)
-                    CriticalChance += WickedRingCrit + WickedRingCritStack * (character.inventory.GetItemCount(ItemIndex.AttackSpeedOnCrit) - 1);
-                if (character.inventory.GetItemCount(ItemIndex.HealOnCrit) > 0)
-                    CriticalChance += ScytheCrit + ScytheCritStack * (character.inventory.GetItemCount(ItemIndex.AttackSpeedOnCrit) - 1);
-                if (character.inventory.GetItemCount(ItemIndex.CritHeal) > 0)
-                    CriticalChance += CritHealCrit + CritHealCritStack * (character.inventory.GetItemCount(ItemIndex.AttackSpeedOnCrit) - 1);
-            }
-            if (character.HasBuff(BuffIndex.FullCrit))
-                CriticalChance += HUDCrit;
 
             CriticalChance += ModItemManager.GetBonusForStat(character, StatIndex.Crit);
             CriticalChance *= 1 + ModItemManager.GetMultiplierForStat(character, StatIndex.AttackSpeed);
+
+            if (character.HasBuff(BuffIndex.FullCrit))
+                CriticalChance += HUDCrit;
+
+            
             return CriticalChance;
         }
 
@@ -1134,12 +893,6 @@ namespace PlexusUtils
         static public float Base_CharacterDefaultArmor(CharacterBody character)
         {
             return character.baseArmor + character.levelArmor * (character.level - 1);
-        }
-        static public float Base_BucklerEffect(CharacterBody character)
-        {
-            if (character.isSprinting && character.inventory.GetItemCount(ItemIndex.SprintArmor) > 0)
-                return character.inventory.GetItemCount(ItemIndex.SprintArmor) * BucklerArmor;
-            return 0;
         }
         static public float Base_ArmorRecalculation(CharacterBody character)
         {
@@ -1150,12 +903,6 @@ namespace PlexusUtils
                 BonusArmor += ArmorBoostBuff;
             if (character.HasBuff(BuffIndex.Cripple))
                 BonusArmor -= CrippleDebuff;
-
-            if (character.inventory)
-            {
-                BonusArmor = character.inventory.GetItemCount(ItemIndex.DrizzlePlayerHelper) * DrizzlePlayerHelper;
-                BonusArmor += HookHandler("BucklerEffect",character);
-            }
             float TotalArmor = BaseArmor + BonusArmor;
             TotalArmor += ModItemManager.GetBonusForStat(character, StatIndex.Armor);
             if (character.isSprinting)
@@ -1164,15 +911,6 @@ namespace PlexusUtils
             if (character.isSprinting)
                 TotalArmor *= 1+ ModItemManager.GetMultiplierForStat(character, StatIndex.RunningArmor);
             return TotalArmor;
-        }
-
-        //CoolDown
-        static public float Base_AlienHeadEffect(CharacterBody character)  
-        {
-            float CDMult = 1;
-            for (int index = 0; index < character.inventory.GetItemCount(ItemIndex.AlienHead); ++index)
-                CDMult *= AlienHeadCDMult;
-            return CDMult;
         }
         static public float Base_CoolDownRecalculation(CharacterBody character)
         {
@@ -1183,8 +921,6 @@ namespace PlexusUtils
 
             if (character.HasBuff(BuffIndex.GoldEmpowered))
                 CoolDownMultiplier *= GoldEmpoweredCD;
-            if (character.inventory)
-                CoolDownMultiplier *= HookHandler("AlienHeadEffect",character);
             if (character.HasBuff(BuffIndex.NoCooldowns))
                 CoolDownMultiplier = 0.0f;
 
@@ -1198,7 +934,7 @@ namespace PlexusUtils
             CoolDownMultiplier += ModItemManager.GetBonusForStat(character, StatIndex.CoolDownPrimary);
 
             CoolDownMultiplier *= ModItemManager.GetMultiplierForStatCD(character, StatIndex.CoolDownPrimary);
-            return 1;
+            return CoolDownMultiplier;
         }
         static public float Base_SecondaryCoolDownMultiplier(CharacterBody character)
         {
@@ -1206,9 +942,6 @@ namespace PlexusUtils
             CoolDownMultiplier += ModItemManager.GetBonusForStat(character, StatIndex.CoolDownSecondary);
 
             CoolDownMultiplier *= ModItemManager.GetMultiplierForStatCD(character, StatIndex.CoolDownSecondary);
-
-            if (character.inventory.GetItemCount(ItemIndex.SecondarySkillMagazine) > 0)
-                CoolDownMultiplier *= SecondarySkillMagazineCD;
             return CoolDownMultiplier;
         }
         static public float Base_UtilityCoolDownMultiplier(CharacterBody character)
@@ -1217,9 +950,6 @@ namespace PlexusUtils
             CoolDownMultiplier += ModItemManager.GetBonusForStat(character, StatIndex.CoolDownUtility);
 
             CoolDownMultiplier *= ModItemManager.GetMultiplierForStatCD(character, StatIndex.CoolDownUtility);
-
-            if (character.inventory.GetItemCount(ItemIndex.UtilitySkillMagazine) > 0)
-                CoolDownMultiplier *= UtilitySkillMagazineCD;
             return CoolDownMultiplier;
         }
         static public float Base_SpecialCoolDownMultiplier(CharacterBody character)
@@ -1228,7 +958,7 @@ namespace PlexusUtils
             CoolDownMultiplier += ModItemManager.GetBonusForStat(character, StatIndex.CoolDownSpecial);
 
             CoolDownMultiplier *= ModItemManager.GetMultiplierForStatCD(character, StatIndex.CoolDownSpecial);
-            return 1;
+            return CoolDownMultiplier;
         }
 
         static public float Base_PrimaryStackCount(CharacterBody character)
@@ -1243,7 +973,6 @@ namespace PlexusUtils
         {
             float count = 0;
             count += ModItemManager.GetBonusForStat(character, StatIndex.CountSecondary);
-            count += character.inventory.GetItemCount(ItemIndex.SecondarySkillMagazine) * SecondarySkillMagazineCount;
             count *= 1 + ModItemManager.GetMultiplierForStat(character, StatIndex.CountSecondary);
             return count;
         }
@@ -1251,7 +980,6 @@ namespace PlexusUtils
         {
             float count = 0;
             count += ModItemManager.GetBonusForStat(character, StatIndex.CountUtility);
-            count += character.inventory.GetItemCount(ItemIndex.UtilitySkillMagazine) * UtilitySkillMagazineCount;
             count *= 1 + ModItemManager.GetMultiplierForStat(character, StatIndex.CountUtility);
             return count;
         }
@@ -1263,7 +991,6 @@ namespace PlexusUtils
             count *= 1 + ModItemManager.GetMultiplierForStat(character, StatIndex.CountSpecial);
             return count;
         }
-#pragma warning restore CS0618 // Disable Obsolete warning
 
         #endregion
         static public void ModdedRecalculate(On.RoR2.CharacterBody.orig_RecalculateStats orig, CharacterBody character)
@@ -1283,14 +1010,12 @@ namespace PlexusUtils
             character.SetPropertyValue("level", l);
 
             
-            
             float Level = character.level - 1f;
 
             character.SetPropertyValue("isElite", character.GetFieldValue<BuffMask>("buffMask").containsEliteBuff);
 
             float preHealth = character.maxHealth;
             float preShield = character.maxShield;
-            
 
             character.SetPropertyValue("maxHealth", HookHandler("HealthRecalculation",character));
 

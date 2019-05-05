@@ -406,13 +406,13 @@ namespace PlexusUtils
 
             bool proc = false;
 
-            if (ModOnHitEnemy.ringBuffer == 0)
+            if (ModEffects.ringBuffer == 0)
             {
                 proc = Util.CheckRoll(8f * damageInfo.procCoefficient, master);
-                ModOnHitEnemy.ringBuffer = proc ? 1 : 2;
+                ModEffects.ringBuffer = proc ? 1 : 2;
             }else
             {
-                proc = ModOnHitEnemy.ringBuffer == 1 ? true : false;
+                proc = ModEffects.ringBuffer == 1 ? true : false;
             }
             return proc;
         }
@@ -462,14 +462,14 @@ namespace PlexusUtils
 
             bool proc = false;
 
-            if (ModOnHitEnemy.ringBuffer == 0)
+            if (ModEffects.ringBuffer == 0)
             {
                 proc = Util.CheckRoll(8f * damageInfo.procCoefficient, master);
-                ModOnHitEnemy.ringBuffer = proc ? 1 : 2;
+                ModEffects.ringBuffer = proc ? 1 : 2;
             }
             else
             {
-                proc = ModOnHitEnemy.ringBuffer == 1 ? true : false;
+                proc = ModEffects.ringBuffer == 1 ? true : false;
             }
             return proc;
         }

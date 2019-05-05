@@ -91,28 +91,52 @@ Create a list of hook to add/remove stats, and ItemSpecific hook, even PostRecal
 
 
 ### Changelog
-0.5.2 Fix additional skill stock bug
+0.5.2 
+
+fix NullReferenceException on ModRecalculate again (wrong dll was shipped...)
+
+
+0.5.2 
+
+Fix additional skill stock bug
+
 fix NullReferenceException on ModRecalculate
 
+
 0.5.1
+
 Added OnHitAll effects (a variable to change in the Child of ModHitEffect)
 
 0.5.0
+
 Added OnHitEnemy Effect customization
+
 Added access to default item Stats and Effect using DefaultModItemDictionary
 
-0.4.0 : 
+
+0.4.0
+
 Added the ModItem and ModItemManager to add any stats to any items
+
 Stats are limited to DirectItem effect, so buff like banner don't work
 
 
-0.3.0 : 
+0.3.0
+
 Added Ability to overide hook, either allowing or blocking other hooks
 
-0.2.0 : 
+
+0.2.0 
+
 Added specific hook for DamageBoostEffect (multiplied with Character DefaultDamage
+
 Added Item Specific public value to edit from ModifyItem Hook
+
 Fixed Slug having no effect
+
 Fixed a LogSpamming bug
 
-0.1.0 : Initial Release
+
+0.1.0 
+
+Initial Release
