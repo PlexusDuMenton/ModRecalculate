@@ -10,7 +10,7 @@ namespace PlexusUtils
 {
    enum Priority:short
    {
-        None = short.MaxValue,
+        Last = short.MaxValue,
         Multiplicative = 16000,
         Additive = 8000,
         High = 1000,
@@ -47,7 +47,7 @@ namespace PlexusUtils
 
     class ModRecalculateCustom
     {
-        public short RecalculatePriority = (short)Priority.None;
+        public short RecalculatePriority = (short)Priority.Additive;
         public FunctionTag FlagOverWrite = FunctionTag.None;
 
         public virtual float RecalculateHealth(float baseValue, CharacterBody character) => baseValue;
@@ -474,6 +474,11 @@ namespace PlexusUtils
             foreach(ModRecalculateCustom obj in m_RecalulateList)
             {
                 m__temp_RecalulateDic.AddOrder(obj.RecalculatePriority, obj);
+            }
+            m_RecalulateList = new List<ModRecalculateCustom>();
+            foreach(KeyValuePair<int, ModRecalculateCustom> kv in m__temp_RecalulateDic)
+            {
+                m_RecalulateList.Add(kv.Value);
             }
         }
 
