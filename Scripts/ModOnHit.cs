@@ -121,7 +121,7 @@ namespace PlexusUtils
             };
             Chat.SendBroadcastChat(deathChatMessage);
         }
-
+        /*
         static public void ModdedCharacterDeath(On.RoR2.GlobalEventManager.orig_OnCharacterDeath orig, GlobalEventManager self, DamageReport damageReport)
         {
             Debug.Log("CharacterDeathModded");
@@ -400,7 +400,7 @@ namespace PlexusUtils
                 }
             }
         }
-
+        */
 
         static public void Init()
         {

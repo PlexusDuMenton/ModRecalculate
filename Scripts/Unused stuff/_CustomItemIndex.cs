@@ -16,6 +16,10 @@ using System.Collections.ObjectModel;
 namespace PlexusUtils
 {
 
+    /*
+     * No longer needed thank to iDeathHD
+     * 
+     * 
     class CustomItemManager
     {
 
@@ -47,5 +51,6 @@ namespace PlexusUtils
         }
 
     }
+    */
 
 }

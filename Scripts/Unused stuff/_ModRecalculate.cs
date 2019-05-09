@@ -5,21 +5,10 @@ using System.Reflection;
 using System;
 using UnityEngine.Networking;
 
-namespace PlexusUtils
-{
-    [BepInPlugin(CharacterStatsAPI.Dependency, "ModRecalculate", CharacterStatsAPI.Version)]
 
-    public class PlexusUtils : BaseUnityPlugin
-    {
 
-       
-        public void Awake()
-        {
-            CharacterStatsAPI.Init();
 
-        }
-    }
-
+/*
     public enum OverideState
     {
         Free = 0, //Overide still didn't happen and can be used
@@ -431,7 +420,7 @@ namespace PlexusUtils
             UtilityStackCount = Base_UtilityStackCount;
             SpecialStackCount = Base_SpecialStackCount;
 
-            PostRecalculate = delegate (CharacterBody character) { /*To aboid Bug*/ };
+            PostRecalculate = delegate (CharacterBody character) { /*To aboid Bug };
             On.RoR2.CharacterBody.RecalculateStats += ModdedRecalculate;
         }
 
@@ -848,186 +837,109 @@ namespace PlexusUtils
             return count;
         }
 
-        #endregion
+#endregion
 
-        //Main Function
-        static public void ModdedRecalculate(On.RoR2.CharacterBody.orig_RecalculateStats orig, CharacterBody character)
-        {
-            if (character == null)
-                return;
-
-            ModifyItem(character);
-
-            character.SetPropertyValue("experience",(float) TeamManager.instance.GetTeamExperience(character.teamComponent.teamIndex));
-            float l = (float)TeamManager.instance.GetTeamLevel(character.teamComponent.teamIndex);
-            if (character.inventory)
-            {
-                l += character.inventory.GetItemCount(ItemIndex.LevelBonus);
-
-            }
-            character.SetPropertyValue("level", l);
-
-            
-            float Level = character.level - 1f;
-
-            character.SetPropertyValue("isElite", character.GetFieldValue<BuffMask>("buffMask").containsEliteBuff);
-
-            float preHealth = character.maxHealth;
-            float preShield = character.maxShield;
-
-            character.SetPropertyValue("maxHealth", HookHandler("HealthRecalculation",character));
-
-
-            character.SetPropertyValue("maxShield", HookHandler("ShieldRecalculation",character));
-
-            character.SetPropertyValue("regen", HookHandler("RegenRecalculation",character));
-
-            character.SetPropertyValue("moveSpeed" , HookHandler("MoveSpeedRecalculation",character));
-
-            character.SetPropertyValue("acceleration" , character.moveSpeed / character.baseMoveSpeed* character.baseAcceleration); // No real need to add hook, well, if people come to ask me for it I guess I'll do
-
-            character.SetPropertyValue("jumpPower" , HookHandler("JumpPower",character));
-
-            character.SetPropertyValue("maxJumpHeight" , Trajectory.CalculateApex(character.jumpPower)); // No real need to add hook, well, if people come to ask me for it I guess I'll do
-
-            character.SetPropertyValue("maxJumpCount" , (int)HookHandler("JumpCount",character));
-            character.SetPropertyValue("damage", HookHandler("DamageRecalculation",character));
-
-            character.SetPropertyValue("attackSpeed", HookHandler("AttackSpeedRecalculation",character));
-            
-            character.SetPropertyValue("crit", HookHandler("CritRecalculation",character));
-            character.SetPropertyValue("armor", HookHandler("ArmorRecalculation",character));
-            //CoolDown
-            float CoolDownMultiplier = HookHandler("CoolDownRecalculation",character);
-            if (character.inventory) { 
-                if ((bool)character.GetFieldValue<SkillLocator>("skillLocator").primary) {
-                    character.GetFieldValue<SkillLocator>("skillLocator").primary.cooldownScale = HookHandlerMultiplier("PrimaryCoolDownMultiplier", character) * CoolDownMultiplier;
-                    if (character.GetFieldValue<SkillLocator>("skillLocator").primary.baseMaxStock > 1)
-                        character.GetFieldValue<SkillLocator>("skillLocator").primary.SetBonusStockFromBody((int)HookHandler("PrimaryStackCount",character));
-                }
-                if ((bool) character.GetFieldValue<SkillLocator>("skillLocator").secondary)
-                {
-                    character.GetFieldValue<SkillLocator>("skillLocator").secondary.cooldownScale = HookHandlerMultiplier("SecondaryCoolDownMultiplier",character) * CoolDownMultiplier;
-                    character.GetFieldValue<SkillLocator>("skillLocator").secondary.SetBonusStockFromBody((int)HookHandler("SecondaryStackCount",character));
-                }
-                if ((bool) character.GetFieldValue<SkillLocator>("skillLocator").utility)
-                {
-                    character.GetFieldValue<SkillLocator>("skillLocator").utility.cooldownScale = HookHandlerMultiplier("UtilityCoolDownMultiplier",character)* CoolDownMultiplier;
-                    character.GetFieldValue<SkillLocator>("skillLocator").utility.SetBonusStockFromBody((int)HookHandler("UtilityStackCount",character));
-                }
-                if ((bool)character.GetFieldValue<SkillLocator>("skillLocator").special)
-                {
-                    character.GetFieldValue<SkillLocator>("skillLocator").special.cooldownScale = CoolDownMultiplier;
-                    if (character.GetFieldValue<SkillLocator>("skillLocator").special.baseMaxStock > 1)
-                        character.GetFieldValue<SkillLocator>("skillLocator").special.SetBonusStockFromBody((int)HookHandler("SpecialStackCount", character));
-                }
-                    
-
-            }
-            //CriticalHeal, it don't seam used for now, so ... no hook 
-            //yea I'm lazy, but making those is boring !
-            character.SetPropertyValue("critHeal", 0.0f);
-            if (character.inventory) { 
-                if (character.inventory.GetItemCount(ItemIndex.CritHeal) > 0)
-                {
-                    float crit = character.crit;
-                    character.SetPropertyValue("crit", character.crit/ (character.inventory.GetItemCount(ItemIndex.CritHeal) + 1));
-                    character.SetPropertyValue("critHeal", crit - character.crit);
-                }
-            }
-            PostRecalculate(character);
-            if (NetworkServer.active)
-            {
-                float HealthOffset = character.maxHealth - preHealth;
-                float ShieldOffset = character.maxShield - preShield;
-                if (HealthOffset > 0)
-                {
-                    double num47 = character.healthComponent.Heal(HealthOffset, new ProcChainMask(), false);
-                }
-                else if (character.healthComponent.health > character.maxHealth)
-                    character.healthComponent.Networkhealth = character.maxHealth;
-                if (ShieldOffset > 0)
-                    character.healthComponent.RechargeShield(ShieldOffset);
-            }
-            character.SetFieldValue("statsDirty",false);
-        }
-    }
-}
-
-public static class ReflectionHelper
+//Main Function
+static public void ModdedRecalculate(On.RoR2.CharacterBody.orig_RecalculateStats orig, CharacterBody character)
 {
+    if (character == null)
+        return;
 
-    private static FieldInfo GetFieldInfo(Type type, string fieldName)
+    ModifyItem(character);
+
+    character.SetPropertyValue("experience", (float)TeamManager.instance.GetTeamExperience(character.teamComponent.teamIndex));
+    float l = (float)TeamManager.instance.GetTeamLevel(character.teamComponent.teamIndex);
+    if (character.inventory)
     {
-        FieldInfo fieldInfo;
-        do
+        l += character.inventory.GetItemCount(ItemIndex.LevelBonus);
+
+    }
+    character.SetPropertyValue("level", l);
+
+
+    float Level = character.level - 1f;
+
+    character.SetPropertyValue("isElite", character.GetFieldValue<BuffMask>("buffMask").containsEliteBuff);
+
+    float preHealth = character.maxHealth;
+    float preShield = character.maxShield;
+
+    character.SetPropertyValue("maxHealth", HookHandler("HealthRecalculation", character));
+
+
+    character.SetPropertyValue("maxShield", HookHandler("ShieldRecalculation", character));
+
+    character.SetPropertyValue("regen", HookHandler("RegenRecalculation", character));
+
+    character.SetPropertyValue("moveSpeed", HookHandler("MoveSpeedRecalculation", character));
+
+    character.SetPropertyValue("acceleration", character.moveSpeed / character.baseMoveSpeed * character.baseAcceleration); // No real need to add hook, well, if people come to ask me for it I guess I'll do
+
+    character.SetPropertyValue("jumpPower", HookHandler("JumpPower", character));
+
+    character.SetPropertyValue("maxJumpHeight", Trajectory.CalculateApex(character.jumpPower)); // No real need to add hook, well, if people come to ask me for it I guess I'll do
+
+    character.SetPropertyValue("maxJumpCount", (int)HookHandler("JumpCount", character));
+    character.SetPropertyValue("damage", HookHandler("DamageRecalculation", character));
+
+    character.SetPropertyValue("attackSpeed", HookHandler("AttackSpeedRecalculation", character));
+
+    character.SetPropertyValue("crit", HookHandler("CritRecalculation", character));
+    character.SetPropertyValue("armor", HookHandler("ArmorRecalculation", character));
+    //CoolDown
+    float CoolDownMultiplier = HookHandler("CoolDownRecalculation", character);
+    if (character.inventory)
+    {
+        if ((bool)character.GetFieldValue<SkillLocator>("skillLocator").primary)
         {
-            fieldInfo = type.GetField(fieldName,
-                   BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            type = type.BaseType;
+            character.GetFieldValue<SkillLocator>("skillLocator").primary.cooldownScale = HookHandlerMultiplier("PrimaryCoolDownMultiplier", character) * CoolDownMultiplier;
+            if (character.GetFieldValue<SkillLocator>("skillLocator").primary.baseMaxStock > 1)
+                character.GetFieldValue<SkillLocator>("skillLocator").primary.SetBonusStockFromBody((int)HookHandler("PrimaryStackCount", character));
         }
-        while (fieldInfo == null && type != null);
-        return fieldInfo;
-    }
-
-    private static PropertyInfo GetPropertyInfo(Type type, string fieldName)
-    {
-        PropertyInfo PropertyInfo;
-        do
+        if ((bool)character.GetFieldValue<SkillLocator>("skillLocator").secondary)
         {
-            PropertyInfo = type.GetProperty(fieldName,
-                   BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            type = type.BaseType;
+            character.GetFieldValue<SkillLocator>("skillLocator").secondary.cooldownScale = HookHandlerMultiplier("SecondaryCoolDownMultiplier", character) * CoolDownMultiplier;
+            character.GetFieldValue<SkillLocator>("skillLocator").secondary.SetBonusStockFromBody((int)HookHandler("SecondaryStackCount", character));
         }
-        while (PropertyInfo == null && type != null);
-        return PropertyInfo;
-    }
+        if ((bool)character.GetFieldValue<SkillLocator>("skillLocator").utility)
+        {
+            character.GetFieldValue<SkillLocator>("skillLocator").utility.cooldownScale = HookHandlerMultiplier("UtilityCoolDownMultiplier", character) * CoolDownMultiplier;
+            character.GetFieldValue<SkillLocator>("skillLocator").utility.SetBonusStockFromBody((int)HookHandler("UtilityStackCount", character));
+        }
+        if ((bool)character.GetFieldValue<SkillLocator>("skillLocator").special)
+        {
+            character.GetFieldValue<SkillLocator>("skillLocator").special.cooldownScale = CoolDownMultiplier;
+            if (character.GetFieldValue<SkillLocator>("skillLocator").special.baseMaxStock > 1)
+                character.GetFieldValue<SkillLocator>("skillLocator").special.SetBonusStockFromBody((int)HookHandler("SpecialStackCount", character));
+        }
 
-    public static T GetFieldValue<T>(this object obj, string fieldName)
-    {
-        if (obj == null)
-            throw new ArgumentNullException("obj");
-        Type objType = obj.GetType();
-        FieldInfo fieldInfo = GetFieldInfo(objType, fieldName);
-        if (fieldInfo == null)
-            throw new ArgumentOutOfRangeException("fieldName",
-              string.Format("Couldn't find field {0} in type {1}", fieldName, objType.FullName));
-        return (T)fieldInfo.GetValue(obj);
-    }
 
-    public static void SetFieldValue(this object obj, string fieldName, object val)
-    {
-        if (obj == null)
-            throw new ArgumentNullException("obj");
-        Type objType = obj.GetType();
-        FieldInfo fieldInfo = GetFieldInfo(objType, fieldName);
-        if (fieldInfo == null)
-            throw new ArgumentOutOfRangeException("fieldName",
-              string.Format("Couldn't find field {0} in type {1}", fieldName, objType.FullName));
-        fieldInfo.SetValue(obj, val);
     }
-
-    public static T GetPropertyValue<T>(this object obj, string fieldName)
+    //CriticalHeal, it don't seam used for now, so ... no hook 
+    //yea I'm lazy, but making those is boring !
+    character.SetPropertyValue("critHeal", 0.0f);
+    if (character.inventory)
     {
-        if (obj == null)
-            throw new ArgumentNullException("obj");
-        Type objType = obj.GetType();
-        PropertyInfo propertyInfo = GetPropertyInfo(objType, fieldName);
-        if (propertyInfo == null)
-            throw new ArgumentOutOfRangeException("propertyName",
-              string.Format("Couldn't find property {0} in type {1}", fieldName, objType.FullName));
-        return (T)propertyInfo.GetValue(obj);
+        if (character.inventory.GetItemCount(ItemIndex.CritHeal) > 0)
+        {
+            float crit = character.crit;
+            character.SetPropertyValue("crit", character.crit / (character.inventory.GetItemCount(ItemIndex.CritHeal) + 1));
+            character.SetPropertyValue("critHeal", crit - character.crit);
+        }
     }
-
-    public static void SetPropertyValue(this object obj, string fieldName, object val)
+    PostRecalculate(character);
+    if (NetworkServer.active)
     {
-        if (obj == null)
-            throw new ArgumentNullException("obj");
-        Type objType = obj.GetType();
-        PropertyInfo propertyInfo = GetPropertyInfo(objType, fieldName);
-        if (propertyInfo == null)
-            throw new ArgumentOutOfRangeException("propertyName",
-              string.Format("Couldn't find property {0} in type {1}", fieldName, objType.FullName));
-        propertyInfo.SetValue(obj, val);
+        float HealthOffset = character.maxHealth - preHealth;
+        float ShieldOffset = character.maxShield - preShield;
+        if (HealthOffset > 0)
+        {
+            double num47 = character.healthComponent.Heal(HealthOffset, new ProcChainMask(), false);
+        }
+        else if (character.healthComponent.health > character.maxHealth)
+            character.healthComponent.Networkhealth = character.maxHealth;
+        if (ShieldOffset > 0)
+            character.healthComponent.RechargeShield(ShieldOffset);
     }
-}
+    character.SetFieldValue("statsDirty", false);
+}*/
